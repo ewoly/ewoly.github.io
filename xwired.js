@@ -35,6 +35,7 @@ var gendata = {
   mustconnect: true,
   usecurgrid: false,
   usebars: false,
+  wallfill: true,
   starttime: 0,
   undolength: 0,
 }
@@ -215,6 +216,8 @@ function updateundo() {
 function unredo(type) {
   if (type === 0 && undologs[0] > 1) {
     gridobjectdata = structuredClone(undologs[undologs[0]-1])
+    interfacedata.attris.width = createInput(gridobjectdata.width)
+    interfacedata.attris.height = createInput(gridobjectdata.height)
     undologs[0]--
   } else if (type === 1 && undologs[0] < undologs.length-1) {
     gridobjectdata = structuredClone(undologs[undologs[0]+1])
@@ -654,6 +657,9 @@ function toggleusecurgrid() {
 function toggleusebars() {
   gendata.usebars = !gendata.usebars
 }
+function togglewallfill() {
+  gendata.wallfill = !gendata.wallfill
+}
 function genundo() {
   if (gendata.undolength > 0) {
     unredo(0)
@@ -703,6 +709,12 @@ function drawgentab(startx, starty, widthallowed) {
   fill("#000000")
   noStroke()
   text("Generate based on current grid", startx+15+widthallowed/12, starty+ydisp+widthallowed/24+5)
+  ydisp += widthallowed/12 + 10
+  drawtoggle(startx+10, starty+ydisp, widthallowed/12, widthallowed/12, gendata.wallfill)
+  interfacedata.buttons.genwallfill = {x:startx+10, y:starty+ydisp, dx:startx+widthallowed/12+10, dy:starty+ydisp+widthallowed/12, func: togglewallfill}
+  fill("#000000")
+  noStroke()
+  text("Replace empty space with walls", startx+15+widthallowed/12, starty+ydisp+widthallowed/24+5)
   ydisp += widthallowed/12 + 16
   /*drawtoggle(startx+10, starty+ydisp, widthallowed/12, widthallowed/12, gendata.usebars)
   interfacedata.buttons.genusebars = {x:startx+10, y:starty+ydisp, dx:startx+10+widthallowed/12, dy:starty+ydisp+widthallowed/12, func: toggleusebars}
@@ -1070,7 +1082,6 @@ function gendefinepositionscurgrid(curgrid) {
   let unsolvable = false
   for (let i = 0; i < gendata.cluewords.length; i++) {
     interfacedata.errornotice = "Defining positions: " + str(round(100*i/gendata.cluewords.length) + "%")
-    //drawgentab(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1,true)
     if (gendata.cluewords[i].length > gendata.gridsize && gendata.cluewords[i].length > gendata.gridsize) {
       unsolvable = true
       break
@@ -1086,9 +1097,9 @@ function gendefinepositionscurgrid(curgrid) {
             fitsin = false
             break
           }
-          if (fitsin) {
-            combs.push([a, b, false])
-          }
+        }
+        if (fitsin) {
+          combs.push([a, b, false])
         }
       }
     }
@@ -1100,9 +1111,9 @@ function gendefinepositionscurgrid(curgrid) {
             fitsin = false
             break
           }
-          if (fitsin) {
-            combs.push([b, a, true])
-          }
+        }
+        if (fitsin) {
+          combs.push([b, a, true])
         }
       }
     }
@@ -1114,6 +1125,10 @@ function gendefinepositionscurgrid(curgrid) {
 
 function generatecrosswordinit() {
   if (!gendata.generating) {
+    if (gendata.usecurgrid && gridobjectdata.width != gridobjectdata.height) {
+      interfacedata.errornotice = "Cannot generate with a non-square grid"
+      return
+    }
     gendata.generating = true
     gendata.starttime = Date.now()/1000
   }
@@ -1160,8 +1175,10 @@ function generatecrossword() {
       } else {
         gendefinepositionsdefault()
       }
-      for (let num in gendata.totalcombos) {
-        if (num == 0) {
+      console.log(gendata.combforeach)
+      console.log(gendata.totalcombos)
+      for (let x = 0; x < gendata.totalcombos.length; x++) {
+        if (gendata.totalcombos[x] == 0) {
           interfacedata.errornotice = "No grid found"
           gendata.generating = false
           gendata.progression = 0
@@ -1296,7 +1313,11 @@ function generatecrossword() {
           let value = grid[y][x][0]
           if (value == "~") {
             if (gendata.usecurgrid) {
-              value = gridobjectdata.stored[x][y].content
+              if (gridobjectdata.stored[x][y].content != "~e") {
+                value = gridobjectdata.stored[x][y].content
+              }
+            } else if (!gendata.wallfill) {
+              value = "~e"
             } else {
               value = "~b"
             } 
@@ -1778,69 +1799,71 @@ function gotonextselect(forward = true, direction = true) {
 
 // mouse
 function mousePressed() {
-  console.log("Click!", mouseX, mouseY);
-  interfacedata.errornotice = ""
-  interfacedata.scrolledmousestart = mouseY
-  for (let button in interfacedata.buttons) {
-    if (mouseX > interfacedata.buttons[button].x && mouseX < interfacedata.buttons[button].dx && mouseY > interfacedata.buttons[button].y && mouseY < interfacedata.buttons[button].dy) {
-      if (interfacedata.buttons[button].length=6) {
-        interfacedata.buttons[button].func.apply(this, interfacedata.buttons[button].params)
-      } else {
-        interfacedata.buttons[button].func()
+  if (!gendata.generating) {
+    console.log("Click!", mouseX, mouseY);
+    interfacedata.errornotice = ""
+    interfacedata.scrolledmousestart = mouseY
+    for (let button in interfacedata.buttons) {
+      if (mouseX > interfacedata.buttons[button].x && mouseX < interfacedata.buttons[button].dx && mouseY > interfacedata.buttons[button].y && mouseY < interfacedata.buttons[button].dy) {
+        if (interfacedata.buttons[button].length=6) {
+          interfacedata.buttons[button].func.apply(this, interfacedata.buttons[button].params)
+        } else {
+          interfacedata.buttons[button].func()
+        }
       }
     }
-  }
-  if (mouseX <= gridobjectdata.truewidth && mouseY <= gridobjectdata.trueheight) {
-    let selectedX = Math.floor(gridobjectdata.width * mouseX / gridobjectdata.truewidth);
-    let selectedY = Math.floor(gridobjectdata.height * mouseY / gridobjectdata.trueheight);
-    if (selectedX == gridobjectdata.selectposition[0] && selectedY == gridobjectdata.selectposition[1]) {
-      gridobjectdata.selectposition[2] = !gridobjectdata.selectposition[2];
-    } else {
-      gridobjectdata.selectposition[0] = selectedX;
-      gridobjectdata.selectposition[1] = selectedY;
+    if (mouseX <= gridobjectdata.truewidth && mouseY <= gridobjectdata.trueheight) {
+      let selectedX = Math.floor(gridobjectdata.width * mouseX / gridobjectdata.truewidth);
+      let selectedY = Math.floor(gridobjectdata.height * mouseY / gridobjectdata.trueheight);
+      if (selectedX == gridobjectdata.selectposition[0] && selectedY == gridobjectdata.selectposition[1]) {
+        gridobjectdata.selectposition[2] = !gridobjectdata.selectposition[2];
+      } else {
+        gridobjectdata.selectposition[0] = selectedX;
+        gridobjectdata.selectposition[1] = selectedY;
+      }
+      gridobjectdata.selectdrag[0] = selectedX;
+      gridobjectdata.selectdrag[1] = selectedY;
+      gridobjectdata.selectdrag[4] = 0;
     }
-    gridobjectdata.selectdrag[0] = selectedX;
-    gridobjectdata.selectdrag[1] = selectedY;
-    gridobjectdata.selectdrag[4] = 0;
-  }
-  if (interfacedata.tabopen == 0) {
-    definedisplayedkeyboard(gridobjectdata.truewidth,30,windowWidth-gridobjectdata.truewidth-1, true)
-  }
-  if (interfacedata.tabopen != 5) {
-    if (mouseY > 0 && mouseY < 30) {
-      let tabwidth = (windowWidth-gridobjectdata.truewidth-4)/5
-      if (mouseX >= gridobjectdata.truewidth+2 && mouseX < gridobjectdata.truewidth+2 + tabwidth) {
-        if (interfacedata.tabopen == 1) {
-          cluestabclose()
+    if (interfacedata.tabopen == 0) {
+      definedisplayedkeyboard(gridobjectdata.truewidth,30,windowWidth-gridobjectdata.truewidth-1, true)
+    }
+    if (interfacedata.tabopen != 5) {
+      if (mouseY > 0 && mouseY < 30) {
+        let tabwidth = (windowWidth-gridobjectdata.truewidth-4)/5
+        if (mouseX >= gridobjectdata.truewidth+2 && mouseX < gridobjectdata.truewidth+2 + tabwidth) {
+          if (interfacedata.tabopen == 1) {
+            cluestabclose()
+          }
+          interfacedata.tabopen = 0
+          attributetabclose()
+          gentabclose()
+        } else if (mouseX >= gridobjectdata.truewidth+2 + tabwidth && mouseX < gridobjectdata.truewidth+2 + 2*tabwidth) {
+          interfacedata.tabopen = 1
+          cluestabinit()
+          attributetabclose()
+          gentabclose()
+        } else if (mouseX >= gridobjectdata.truewidth+2 + 2*tabwidth && mouseX < gridobjectdata.truewidth+2 + 3*tabwidth) {
+          if (interfacedata.tabopen == 1) {
+            cluestabclose()
+          }
+          gentabclose()
+          interfacedata.tabopen = 2
+        } else if (mouseX >= gridobjectdata.truewidth+2 + 3*tabwidth && mouseX < gridobjectdata.truewidth+2 + 4*tabwidth) {
+          if (interfacedata.tabopen == 1) {
+            cluestabclose()
+          }
+          attributetabclose()
+          gentabinit()
+          interfacedata.tabopen = 3
+        } else if (mouseX >= gridobjectdata.truewidth+2 + 4*tabwidth && mouseX < gridobjectdata.truewidth+2 + 5*tabwidth) {
+          if (interfacedata.tabopen == 1) {
+            cluestabclose()
+          }
+          attributetabclose()
+          gentabclose()
+          interfacedata.tabopen = 4
         }
-        interfacedata.tabopen = 0
-        attributetabclose()
-        gentabclose()
-      } else if (mouseX >= gridobjectdata.truewidth+2 + tabwidth && mouseX < gridobjectdata.truewidth+2 + 2*tabwidth) {
-        interfacedata.tabopen = 1
-        cluestabinit()
-        attributetabclose()
-        gentabclose()
-      } else if (mouseX >= gridobjectdata.truewidth+2 + 2*tabwidth && mouseX < gridobjectdata.truewidth+2 + 3*tabwidth) {
-        if (interfacedata.tabopen == 1) {
-          cluestabclose()
-        }
-        gentabclose()
-        interfacedata.tabopen = 2
-      } else if (mouseX >= gridobjectdata.truewidth+2 + 3*tabwidth && mouseX < gridobjectdata.truewidth+2 + 4*tabwidth) {
-        if (interfacedata.tabopen == 1) {
-          cluestabclose()
-        }
-        attributetabclose()
-        gentabinit()
-        interfacedata.tabopen = 3
-      } else if (mouseX >= gridobjectdata.truewidth+2 + 4*tabwidth && mouseX < gridobjectdata.truewidth+2 + 5*tabwidth) {
-        if (interfacedata.tabopen == 1) {
-          cluestabclose()
-        }
-        attributetabclose()
-        gentabclose()
-        interfacedata.tabopen = 4
       }
     }
   }
