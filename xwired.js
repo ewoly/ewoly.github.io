@@ -1799,11 +1799,8 @@ function gotonextselect(forward = true, direction = true) {
   }
 }
 
-function mousePressed() {
-  click()
-}
 // mouse
-function click() {
+function mousePressed() {
   if (!gendata.generating) {
     console.log("Click!", mouseX, mouseY);
     interfacedata.errornotice = str(mouseX) + " " + str(mouseY)
@@ -1944,9 +1941,6 @@ function mouseWheel(event) {
   }
 }
 
-function touchStarted() {
-  click()
-}
 function touchMoved() {
   interfacedata.errornotice = str(interfacedata.scrolledmousestart)
   if (interfacedata.scrolledmousestart != false) {
@@ -1971,7 +1965,4 @@ function touchMoved() {
       }
     }
   }
-}
-function touchEnded() {
-  interfacedata.scrolledmousestart = false
 }
