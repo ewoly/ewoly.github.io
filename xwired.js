@@ -1633,6 +1633,9 @@ function draw() {
   if (gendata.generating) {
     generatecrossword()
   }
+  fill("#000000")
+  textSize(25)
+  text(interfacedata.errornotice, 60, 60)
 }
 
 // taking inputs
@@ -1803,7 +1806,7 @@ function mousePressed() {
 function click() {
   if (!gendata.generating) {
     console.log("Click!", mouseX, mouseY);
-    interfacedata.errornotice = ""
+    interfacedata.errornotice = str(mouseX) + " " + str(mouseY)
     interfacedata.scrolledmousestart = mouseY
     for (let button in interfacedata.buttons) {
       if (mouseX > interfacedata.buttons[button].x && mouseX < interfacedata.buttons[button].dx && mouseY > interfacedata.buttons[button].y && mouseY < interfacedata.buttons[button].dy) {
@@ -1970,5 +1973,5 @@ function touchMoved() {
   }
 }
 function touchEnded() {
-  return false
+  interfacedata.scrolledmousestart = false
 }
