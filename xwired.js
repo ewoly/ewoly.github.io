@@ -1796,9 +1796,11 @@ function gotonextselect(forward = true, direction = true) {
   }
 }
 
-
-// mouse
 function mousePressed() {
+  click()
+}
+// mouse
+function click() {
   if (!gendata.generating) {
     console.log("Click!", mouseX, mouseY);
     interfacedata.errornotice = ""
@@ -1939,7 +1941,11 @@ function mouseWheel(event) {
   }
 }
 
+function touchStarted() {
+  click()
+}
 function touchMoved() {
+  interfacedata.errornotice = str(interfacedata.scrolledmousestart)
   if (interfacedata.scrolledmousestart != false) {
     if (interfacedata.tabopen == 1) {
       interfacedata.scrolledclues += interfacedata.scrolledmousestart - mouseY
