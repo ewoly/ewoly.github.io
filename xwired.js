@@ -1938,3 +1938,31 @@ function mouseWheel(event) {
     }
   }
 }
+
+function touchMoved() {
+  if (interfacedata.scrolledmousestart != false) {
+    if (interfacedata.tabopen == 1) {
+      interfacedata.scrolledclues += interfacedata.scrolledmousestart - mouseY
+      interfacedata.scrolledmousestart = mouseY
+      let lowerlimit = gridobjectdata.fullwords.length*80-windowHeight+32
+      if (interfacedata.scrolledclues < 0 || lowerlimit < 0) {
+        interfacedata.scrolledclues = 0
+      } else if (interfacedata.scrolledclues > lowerlimit) {
+        interfacedata.scrolledclues = lowerlimit
+      }
+    } else if (interfacedata.tabopen == 3) {
+      interfacedata.scrolledgen += interfacedata.scrolledmousestart - mouseY
+      interfacedata.scrolledmousestart = mouseY
+      let lowerlimit = interfacedata.generatorwords.length*40-windowHeight+(windowWidth-gridobjectdata.widthend)/1.4
+      console.log(lowerlimit)
+      if (interfacedata.scrolledgen < 0 || lowerlimit < 0) {
+        interfacedata.scrolledgen = 0
+      } else if (interfacedata.scrolledgen > lowerlimit) {
+        interfacedata.scrolledgen = lowerlimit
+      }
+    }
+  }
+}
+function touchEnded() {
+  return false
+}
