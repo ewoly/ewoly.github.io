@@ -1,6 +1,6 @@
 var gridobjectdata = {
-  width: 2,
-  height: 2,
+  width: 7,
+  height: 7,
   name: "",
   selectposition: [0,0,false],
   selectdrag: [-1,-1,-1,-1, 0],
@@ -18,7 +18,28 @@ var interfacedata = {
   generatorwords: [1, [null,""]],
   attris: {width: null, height: null, name: null, desc: null},
   buttons: {},
-  errornotice: ""
+  errornotice: ["",0,0,0]
+}
+
+var gendata = {
+  generating: false,
+  history: [[null,"bad"],false],
+  cluewords: [],
+  combforeach: [],
+  triedcombos: [],
+  totalcombos: [],
+  pastgrids: [],
+  progression: 0,
+  focusindex: 0,
+  gridsize: 0,
+  mustconnect: true,
+  usecurgrid: false,
+  usebars: false,
+  starttime: 0,
+  undolength: 0,
+}
+var setting = {
+  colourblind: false,
 }
 
 const colourscheme = {
@@ -28,10 +49,11 @@ const colourscheme = {
   celllineselect: "#CCCC60",
   celltrueselect: "#FFFF00",
   background: "#848484",
-  backgrounddark: "#444444"
+  backgrounddark: "#545454"
 }
 
 const shadecolours = ["#FFFFFF","#ece9ec","#ffa0a0","#caffa0","#9be6ff", "#ddd2ff"] //"#fdffb6" 
+const shadesymbols = ["","","R","G","B","V"] 
 
 var undologs = [1]
 
@@ -54,8 +76,8 @@ function setup() {
   console.log(gridobjectdata);
   undologs.push(structuredClone(gridobjectdata));
   console.log(undologs)
-  interfacedata.attris.width = createInput(gridobjectdata.width)
-  interfacedata.attris.height = createInput(gridobjectdata.height)
+  interfacedata.attris.width = createInput(gridobjectdata.width, "number")
+  interfacedata.attris.height = createInput(gridobjectdata.height, "number")
   interfacedata.attris.name = createInput()
   interfacedata.attris.desc = createInput()
 }
@@ -106,25 +128,29 @@ function indexOfMax(arr) {
 }
 
 function calculateWrappedLines(text, maxWidth) {
+  //console.log("made here")
   const words = text.split(' ');
   let lines = [];
   let currentLine = '';
 
   for (let word of words) {
+    let zz = 0
     while (textWidth(word) > maxWidth) {
+      zz++
       const splitIndex = findsplitindex(currentLine + word, maxWidth) - currentLine.length;
-      //console.log(word,splitIndex)
       if (splitIndex>=0) {
         currentLine += word.slice(0, splitIndex);
         if (currentLine.trim().length > 0) {
           lines.push(currentLine.trim());
-          //console.log(currentLine, word)
           currentLine = '';
         }
         word = word.slice(splitIndex);
       } else {
         lines.push(currentLine.trim());
         currentLine = '';
+      }
+      if (zz > 10) {
+        break
       }
     }
     if (textWidth(currentLine + word + ' ') > maxWidth) {
@@ -140,7 +166,6 @@ function calculateWrappedLines(text, maxWidth) {
   if (currentLine.trim().length > 0) {
     lines.push(currentLine.trim());
   }
-  //console.log(lines)
   return lines;
 }
 
@@ -148,21 +173,19 @@ function drawwrappedtext(content, xpos, ypos, boxwidth, lineheight) {
   const lines = calculateWrappedLines(content, boxwidth);
   for (let line of lines) {
     text(line, xpos, ypos);
-    //console.log(ypos)
     ypos += lineheight;
   }
 }
 
 function textHeight(text, maxWidth) {
   const lines = calculateWrappedLines(text, maxWidth);
-  //console.log(text,lines.length)
   return lines.length * textLeading();
 }
 
 function findsplitindex(word, boxwidth) {
   for (let i = 1; i <= word.length; i++) {
     if (textWidth(word.substring(0, i)) > boxwidth) {
-      return i - 1;
+      return i-1;
     }
   }
   return word.length;
@@ -221,7 +244,7 @@ function changestartdata(axis, x, y, seq) {
     }
   }
   gridobjectdata.stored[x][y].startofclue[axis*2+2] = shiftalong;
-  if (!word.includes("~") && (interfacedata.tabopen == 0 || interfacedata.tabopen == 3)) {
+  if (!word.includes("~") && (interfacedata.tabopen != 1)) {
     gridobjectdata.fullwords.push([str(seq)+ ((axis === 0) ? "A" : "D"), [x,y,(axis === 0) ? "A" : "D"], word])
   }
 }
@@ -385,6 +408,13 @@ function definedisplayedkeyboard(startx, starty, widthallowed, clickchecker) {
         stroke(0)
         fill(shadecolours[x])
         rect(startx + x*keysize + 1, starty + 5*keysize + 1, keysize - 2);
+        if (setting.colourblind && x>1) {
+          textSize(Math.floor(keysize/1.9)*0.4)
+          let symbol = shadesymbols[x]
+          fill("#000000");
+          noStroke()
+          text(symbol, startx + (x+0.87)*keysize, starty + 5.91*keysize + 1);
+        }
       } else if (x == 6) {
         stroke(0)
         strokeWeight(widthallowed/243)
@@ -412,7 +442,6 @@ function definedisplayedkeyboard(startx, starty, widthallowed, clickchecker) {
 function drawcrossgrid(startx = 0, starty = 0, endx = windowWidth / 2, endy = windowHeight) {
   noStroke()
   textAlign(CENTER);
-  console.log("Dime",startx,starty,endx,endy)
   if ((endx - startx) / gridobjectdata.width < (endy - starty) / gridobjectdata.height) {
     gridobjectdata.cellsize = (endx - startx) / gridobjectdata.width
     gridobjectdata.truewidth = endx - startx
@@ -432,6 +461,7 @@ function drawcrossgrid(startx = 0, starty = 0, endx = windowWidth / 2, endy = wi
       let cellinfo = gridobjectdata.stored[x][y];
       let istrueselected = (gridobjectdata.selectposition[0] == x && gridobjectdata.selectposition[1] == y);
       let islineselected = (gridobjectdata.selectposition[2] == false && gridobjectdata.selectposition[1] == y) || (gridobjectdata.selectposition[2] == true && gridobjectdata.selectposition[0] == x);
+      let symbolhighlight = false
       if (istrueselected && interfacedata.tabopen == 0) {
           fill(colourscheme.celltrueselect); // highlights for selected
       } else if (islineselected && interfacedata.tabopen == 0) {
@@ -440,6 +470,9 @@ function drawcrossgrid(startx = 0, starty = 0, endx = windowWidth / 2, endy = wi
           fill(colourscheme.cellwall);
       } else {
           fill(shadecolours[gridobjectdata.stored[x][y].shading]);
+      }
+      if (gridobjectdata.stored[x][y].shading > 1 && setting.colourblind) {
+        symbolhighlight = true
       }
       rect(x*gridobjectdata.cellsize + 1 + startx, y*gridobjectdata.cellsize + 1 + starty, gridobjectdata.cellsize - 2);
       fill(cellinfo.content == "~b" ? colourscheme.cellwall : shadecolours[gridobjectdata.stored[x][y].shading]);
@@ -471,6 +504,12 @@ function drawcrossgrid(startx = 0, starty = 0, endx = windowWidth / 2, endy = wi
       if (cellinfo.barredy && cellinfo.content != "~b") {
         fill(colourscheme.cellwall);
         rect(x*gridobjectdata.cellsize + startx -1, (y+0.85)*gridobjectdata.cellsize + starty, gridobjectdata.cellsize, 0.15*gridobjectdata.cellsize);
+      }
+      if (symbolhighlight && cellinfo.content != "~b") {
+        symbol = shadesymbols[gridobjectdata.stored[x][y].shading]
+        textSize(0.3*curtextsize);
+        if (cellinfo.barredx || cellinfo.barredy) {fill("#FFFFFF");} else {fill("#000000");};
+        text(symbol, (x+0.97-str(symbol).length*0.06)*gridobjectdata.cellsize + startx, (y+1.07)*gridobjectdata.cellsize - curtextsize/7 + starty);
       }
     }
   }
@@ -545,6 +584,11 @@ function drawcluestab(startx, starty, widthallowed) {
     text(gridobjectdata.fullwords[i][2], startx + 5 + textWidth(gridobjectdata.fullwords[i][0] +")"), ypos+22)
     gridobjectdata.fullwords[i][3].size(widthallowed-14,20)
   }
+  if (gridobjectdata.fullwords.length == 0 && interfacedata.assignedclues.length == 0) {
+    textAlign(LEFT, TOP)
+    textSize(widthallowed/20)
+    text("No complete words found! Fill in the grid on the left first.", startx + 5, starty+5, widthallowed- 10)
+  }
 }
 
 function cluestabclose() {
@@ -565,8 +609,66 @@ function cluestabclose() {
       gridobjectdata.fullwords[i].splice(3,1)
     }
   }
+  for (let j = interfacedata.assignedclues.length-1; j >= 0; j--) {
+    if (interfacedata.assignedclues[j][1] == "") {
+      let broken = false
+      for (let i = 0; i < gridobjectdata.fullwords.length; i++) {
+        if (interfacedata.assignedclues[j][0] == gridobjectdata.fullwords[i][2] && arraysEqual(interfacedata.assignedclues[j][2],gridobjectdata.fullwords[i][1])) {
+          broken = true
+          break;
+        }
+      }
+      if (!broken) {
+        interfacedata.assignedclues.splice(j,1)
+      }
+    }
+  }
   console.log(interfacedata.assignedclues)
   console.log(gridobjectdata.fullwords)
+}
+
+function drawtoggle(startx, starty, width, height, state) {
+  strokeWeight(height/16)
+  if (state) {
+    fill("#22FF22")
+  } else {
+    fill("#FF2222")
+  }
+  stroke(0)
+  rectMode(CORNER)
+  rect(startx, starty, width, height)
+  if (state) {
+    line(startx+width/3,starty+height, startx+width, starty)
+    line(startx+width/3,starty+height, startx, starty+height/2)
+  } else {
+    line(startx,starty, startx+width, starty+height)
+    line(startx+width,starty, startx, starty+height)
+  }
+}
+function togglemustconnect() {
+  gendata.mustconnect = !gendata.mustconnect
+}
+function toggleusecurgrid() {
+  gendata.usecurgrid = !gendata.usecurgrid
+}
+function toggleusebars() {
+  gendata.usebars = !gendata.usebars
+}
+function genundo() {
+  if (gendata.undolength > 0) {
+    unredo(0)
+    gendata.undolength -= 1
+  }
+}
+function removegenwords() {
+  for (let i = interfacedata.generatorwords[0]; i > 0; i--) {
+    interfacedata.generatorwords[i][0].remove()
+    interfacedata.generatorwords.pop()
+  }
+  interfacedata.generatorwords[0] = 1
+  interfacedata.generatorwords.push([null, ""])
+  interfacedata.generatorwords[1][0] = createInput()
+  interfacedata.generatorwords[1][0].attribute('placeholder', 'Enter word here')
 }
 
 function gentabinit() {
@@ -577,8 +679,9 @@ function gentabinit() {
   }
 }
 
-function drawgenprogress(startx, starty, widthallowed) {
-
+function drawgenprogress(startx, starty, widthallowed, message) {
+  textSize(widthallowed/25)
+  drawwrappedtext(message,startx,starty,widthallowed-6)
 }
 
 function drawgentab(startx, starty, widthallowed) {
@@ -586,18 +689,78 @@ function drawgentab(startx, starty, widthallowed) {
   textAlign(LEFT);
   fill(colourscheme.cellwall)
   let ydisp = -interfacedata.scrolledgen + width/50
-  desctext = "This is the crossword generator, it takes input words and creates a crossword grid out of them! This may take some time, and will clear the current grid."
+  desctext = "This is the crossword generator, it takes input words and creates a crossword grid out of them! This may take some time, and may clear the current grid."
   text(desctext, startx+5, starty+ydisp, widthallowed-10)
-  ydisp += textHeight(desctext,widthallowed-10)
-  fill("#F0E0FF")
-  strokeWeight(2)
-  stroke(0)
-  rect(startx+10, starty+ydisp-5, widthallowed/5.5, widthallowed/20)
+  ydisp += textHeight(desctext,widthallowed-10)-5
+  drawtoggle(startx+10, starty+ydisp, widthallowed/12, widthallowed/12, gendata.mustconnect)
+  interfacedata.buttons.genmustconnect = {x:startx+10, y:starty+ydisp, dx:startx+widthallowed/12+10, dy:starty+ydisp+widthallowed/12, func: togglemustconnect}
   fill("#000000")
   noStroke()
-  text("Generate!", startx + 10 + widthallowed/200, starty+ydisp+(widthallowed/24)-5)
-  interfacedata.buttons.generate = {x:startx+10, y:starty+ydisp-5, dx:startx+widthallowed/5.5+10, dy:starty+ydisp+widthallowed/20-5, func: generatecrossword}
-  ydisp += 4 + widthallowed/16
+  text("Crossword must fully connect", startx+15+widthallowed/12, starty+ydisp+widthallowed/24+5)
+  ydisp += widthallowed/12 + 10
+  drawtoggle(startx+10, starty+ydisp, widthallowed/12, widthallowed/12, gendata.usecurgrid)
+  interfacedata.buttons.gencurgrid = {x:startx+10, y:starty+ydisp, dx:startx+widthallowed/12+10, dy:starty+ydisp+widthallowed/12, func: toggleusecurgrid}
+  fill("#000000")
+  noStroke()
+  text("Generate based on current grid", startx+15+widthallowed/12, starty+ydisp+widthallowed/24+5)
+  ydisp += widthallowed/12 + 16
+  /*drawtoggle(startx+10, starty+ydisp, widthallowed/12, widthallowed/12, gendata.usebars)
+  interfacedata.buttons.genusebars = {x:startx+10, y:starty+ydisp, dx:startx+10+widthallowed/12, dy:starty+ydisp+widthallowed/12, func: toggleusebars}
+  fill("#000000")
+  noStroke()
+  text("Crossword may use bars to separate cells", startx+15+widthallowed/12, starty+ydisp+widthallowed/24+5)
+  ydisp += widthallowed/12 + 10*/
+  fill("#F0E0FF")
+  strokeWeight(widthallowed/192)
+  stroke(0)
+  let xdisp = startx
+  if (!gendata.history[1] && !gendata.generating) {
+    rect(startx+10, starty+ydisp-5, widthallowed/5.5, widthallowed/20)
+    fill("#000000")
+    noStroke()
+    text("Generate!", startx + 10 + widthallowed/200, starty+ydisp+(widthallowed/24)-5)
+    interfacedata.buttons.generate = {x:startx+10, y:starty+ydisp-5, dx:startx+widthallowed/5.5+10, dy:starty+ydisp+widthallowed/20-5, func: generatecrosswordinit}
+    xdisp += widthallowed/5.5+10+widthallowed/100
+  } else if (!gendata.generating) {
+    rect(startx+10, starty+ydisp-5, textWidth("Continue Generating")+widthallowed/100, widthallowed/20)
+    fill("#000000")
+    noStroke()
+    text("Continue Generating", startx + 10 + widthallowed/200, starty+ydisp+(widthallowed/24)-5)
+    interfacedata.buttons.generate = {x:startx+10, y:starty+ydisp-5, dx:startx+textWidth("Continue Generating")+widthallowed/100+10, dy:starty+ydisp+widthallowed/20-5, func: generatecrosswordinit}
+    xdisp += textWidth("Continue Generating")+5*widthallowed/100
+  }
+  if (!gendata.generating) {
+    fill("#D0E0DF")
+    stroke(0)
+    rect(xdisp+widthallowed/100, starty+ydisp-5, textWidth("Revert Grid")+widthallowed/100, widthallowed/20)
+    fill("#000000")
+    noStroke()
+    text("Revert Grid", xdisp + 3*widthallowed/200, starty+ydisp+(widthallowed/24)-5)
+    interfacedata.buttons.genundo = {x:xdisp+widthallowed/100, y:starty+ydisp-5, dx:xdisp+textWidth("Revert Grid")+widthallowed/50, dy:starty+ydisp+widthallowed/20-5, func: genundo}
+    xdisp += textWidth("Revert Grid")+widthallowed/25
+    fill("#D0E0DF")
+    stroke(0)
+    rect(xdisp, starty+ydisp-5, textWidth("Clear Words")+widthallowed/100, widthallowed/20)
+    fill("#000000")
+    noStroke()
+    text("Clear Words", xdisp + widthallowed/200, starty+ydisp+(widthallowed/24)-5)
+    interfacedata.buttons.genclear = {x:xdisp, y:starty+ydisp-5, dx:xdisp+textWidth("Clear Words")+widthallowed/100, dy:starty+ydisp+widthallowed/20-5, func: removegenwords}
+  }
+  fill("#000000")
+  noStroke()
+  if (gendata.generating) {
+    drawgenprogress(startx+5, starty+ydisp, widthallowed-10, interfacedata.errornotice)
+    interfacedata.errornotice = ""
+  }
+  ydisp += 3 + widthallowed/12
+  if (!gendata.generating && interfacedata.errornotice != "") {
+    drawgenprogress(startx+5, starty+ydisp, widthallowed-10, interfacedata.errornotice)
+  }
+  ydisp += widthallowed/12
+  textSize(widthallowed/25)
+  fill("#000000")
+  text("Generator words:", startx+5, starty+ydisp, widthallowed-10)
+  ydisp += widthallowed/36
   for (let i = 1; i <= interfacedata.generatorwords[0]; i++) {
     let ypos = 40*(i-1)+starty+ydisp
     if (ypos > 36 && ypos < windowHeight) {
@@ -633,14 +796,16 @@ function gentabclose() {
       delete interfacedata.buttons[button]
     }
   }
+  gendata.history[1] = false
 }
 
-function wordfitinposition(position, word, grid) {
+function wordfitinposition(position, word, grid, order) {
   let x = position[0]
   let y = position[1]
   let height = grid.length
   let width = grid[0].length
   let works = true
+  //let fits = false
   if (position[2]) {
     for (let i = 0; i < word.length; i++) { // match word's letters down
       let posletter = grid[y+i][x][0]
@@ -648,7 +813,13 @@ function wordfitinposition(position, word, grid) {
         works = false
         break
       }
+      //if (posletter == word[i]) {
+        //fits = true
+      //}
     }
+    //if (!fits) {
+      //works = false
+    //}
     if (y > 0) {
       if (grid[y-1][x][0] != "~") { // above is empty
         works = false
@@ -662,7 +833,7 @@ function wordfitinposition(position, word, grid) {
     if (x > 0) {
       for (let i = 0; i < word.length; i++) { // leftwards
         let posletter = grid[y+i][x-1]
-        if (posletter[0] != "~" && ((posletter[3][0] && !posletter[2][0]) || posletter[2][2])) { // if left also down or end of word
+        if (posletter[0] != "~" && posletter[1] && ((posletter[3][0] && !posletter[2][0]) || posletter[2][2])) { // if left also down or end of word
           works = false
           break
         }
@@ -671,7 +842,6 @@ function wordfitinposition(position, word, grid) {
     if (x < width-1) {
       for (let i = 0; i < word.length; i++) {
         let posletter = grid[y+i][x+1]
-        //console.log(posletter)
         if (posletter[0] != "~" && posletter[1] && ((posletter[3][0] && !posletter[2][0]) || posletter[2][1])) {
           works = false
           break
@@ -685,7 +855,13 @@ function wordfitinposition(position, word, grid) {
         works = false
         break
       }
+      //if (posletter == word[i]) {
+        //fits = true
+      //}
     }
+    //if (!fits) {
+      //works = false
+    //}
     if (x > 0) {
       if (grid[y][x-1][0] != "~") {
         works = false
@@ -718,7 +894,7 @@ function wordfitinposition(position, word, grid) {
   return works
 }
 
-function wordfitallposition(word, grid, positions, attempted, totals, problems) {
+function wordfitallposition(word, grid, positions, attempted, totals, order) {
   let i = attempted-1
   let repeatagain = true
   while (repeatagain) {
@@ -727,10 +903,10 @@ function wordfitallposition(word, grid, positions, attempted, totals, problems) 
       repeatagain = false
       break
     } 
-    fitresult = wordfitinposition(positions[i], word, grid)
+    fitresult = wordfitinposition(positions[i], word, grid, order)
     repeatagain = !fitresult
   }
-  return [i, problems, i>=totals]
+  return [i, i>=totals]
 }
 
 function gridinsertion(word, position, grid, index) { // put the word in the grid temp
@@ -856,187 +1032,316 @@ function findintersects(grid, width, height) {
   return numinter
 }
 
+function gendefinepositionsdefault() {
+  let unsolvable = false
+  let existinglengths = []
+  for (let i = 0; i < gendata.cluewords.length; i++) {
+    interfacedata.errornotice = "Defining positions: " + str(round(100*i/gendata.cluewords.length) + "%")
+    if (gendata.cluewords[i].length > gendata.gridsize && gendata.cluewords[i].length > gendata.gridsize) {
+      unsolvable = true
+      break
+    }
+    gendata.triedcombos.push(0)
+    gendata.pastgrids.push(null)
+    gendata.totalcombos.push((gendata.gridsize+1-gendata.cluewords[i].length) * gendata.gridsize + (gendata.gridsize+1-gendata.cluewords[i].length) * gendata.gridsize)
+    if (existinglengths.includes(gendata.cluewords[i].length)) {
+      let combs = structuredClone(gendata.combforeach[existinglengths.findIndex(len => len == gendata.cluewords[i].length)])
+      shufflearray(combs)
+      gendata.combforeach.push(combs)
+    } else {
+      let combs = []
+      for (let a = 0; a < (gendata.gridsize+1-gendata.cluewords[i].length); a++) {
+        for (let b = 0; b < gendata.gridsize; b++) {
+          combs.push([a, b, false])
+        }
+      }
+      for (let a = 0; a < (gendata.gridsize+1-gendata.cluewords[i].length); a++) {
+        for (let b = 0; b < gendata.gridsize; b++) {
+          combs.push([b, a, true])
+        }
+      }
+      shufflearray(combs) // so the grid isnt so across + topleft heavy, remove bias
+      gendata.combforeach.push(combs)
+    }
+    existinglengths.push(gendata.cluewords[i].length)
+  }
+}
+function gendefinepositionscurgrid(curgrid) {
+  let unsolvable = false
+  for (let i = 0; i < gendata.cluewords.length; i++) {
+    interfacedata.errornotice = "Defining positions: " + str(round(100*i/gendata.cluewords.length) + "%")
+    //drawgentab(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1,true)
+    if (gendata.cluewords[i].length > gendata.gridsize && gendata.cluewords[i].length > gendata.gridsize) {
+      unsolvable = true
+      break
+    }
+    gendata.triedcombos.push(0)
+    gendata.pastgrids.push(null)
+    let combs = []
+    for (let a = 0; a < (gendata.gridsize+1-gendata.cluewords[i].length); a++) {
+      for (let b = 0; b < gendata.gridsize; b++) {
+        let fitsin = true
+        for (let x = 0; x < gendata.cluewords[i].length; x++) {
+          if (!(curgrid[a+x][b].content == "~e" || curgrid[a+x][b].content == gendata.cluewords[i][x].toUpperCase()) || curgrid[a+x][b].content == "~b" || (curgrid[a+x][b].barredx && x != gendata.cluewords[i].length-1)) {
+            fitsin = false
+            break
+          }
+          if (fitsin) {
+            combs.push([a, b, false])
+          }
+        }
+      }
+    }
+    for (let a = 0; a < (gendata.gridsize+1-gendata.cluewords[i].length); a++) {
+      for (let b = 0; b < gendata.gridsize; b++) {
+        let fitsin = true
+        for (let x = 0; x < gendata.cluewords[i].length; x++) {
+          if (!(curgrid[b][a+x].content == "~e" || curgrid[b][a+x].content == gendata.cluewords[i][x]) || curgrid[b][a+x].content == "~b" || (curgrid[b][a+x].barredy && x != gendata.cluewords[i].length-1)) {
+            fitsin = false
+            break
+          }
+          if (fitsin) {
+            combs.push([b, a, true])
+          }
+        }
+      }
+    }
+    shufflearray(combs) // so the grid isnt so across + topleft heavy, remove bias
+    gendata.combforeach.push(combs)
+    gendata.totalcombos.push(combs.length)
+  }
+}
+
+function generatecrosswordinit() {
+  if (!gendata.generating) {
+    gendata.generating = true
+    gendata.starttime = Date.now()/1000
+  }
+}
+
 function generatecrossword() {
-  let cluewords = []
+  gendata.cluewords = []
   for (let i = 1; i < interfacedata.generatorwords.length-1; i++) {
     let word = interfacedata.generatorwords[i][1].replace(/[^A-Z\d]/gi, '')
     if (word.length > 1) {
-      cluewords.push(word)
+      gendata.cluewords.push(word.toUpperCase())
     }
   }
-  cluewords.sort((a, b) => b.length - a.length);
-  let gridwidth = int(cluewords[0].length)
-  let gridheight = int(cluewords[0].length)
+  if (gendata.cluewords.length < 1) {
+    interfacedata.errornotice = "No generator words are inputted"
+    gendata.generating = false
+    return
+  }
+  gendata.cluewords.sort((a, b) => b.length - a.length);
+  if (!arraysEqual(gendata.cluewords, gendata.history[0])) {
+    gendata.gridsize = int(gendata.cluewords[0].length)
+    gendata.starttime = Date.now()/1000
+    gendata.progression = 1
+    gendata.history[0] = structuredClone(gendata.cluewords)
+  }
+  if (!gendata.history[1]) {
+    gendata.gridsize = int(gendata.cluewords[0].length)
+    gendata.progression = 1
+    gendata.starttime = Date.now()/1000
+    gendata.history[1] = true
+  }
+  let processtime = Date.now()/1000
   let expandinggrid = true
-  let starttime = Date.now()/1000
   while (expandinggrid) {
-    //console.log(gridwidth)
-    let triedcombinations = [] // which part of combforeach it has cycled through
-    let totalcombinations = [] // max number per word of combforeach (its length)
-    let combforeach = [] // all combinations of word placements
-    let problemindices = [] // if a word cant fit, why? if one index is always a problem, then remove the index // just realised it WONT work because of
-    let pastgrids = [null]
-    let unsolvable = false
-    let existinglengths = []
-    for (let i = 0; i < cluewords.length; i++) {
-      if (cluewords[i].length > gridwidth && cluewords[i].length > gridheight) {
-        unsolvable = true
-        break
-      }
-      triedcombinations.push(0)
-      problemindices.push([])
-      pastgrids.push(null)
-      totalcombinations.push((gridwidth+1-cluewords[i].length) * gridheight + (gridheight+1-cluewords[i].length) * gridwidth)
-      if (existinglengths.includes(cluewords[i].length)) {
-        let combs = structuredClone(combforeach[existinglengths.findIndex(len => len == cluewords[i].length)])
-        shufflearray(combs)
-        combforeach.push(combs)
+    if (gendata.progression == 1) {
+      gendata.triedcombos = [] // which part of gendata.combforeach it has cycled through
+      gendata.totalcombos = [] // max number per word of gendata.combforeach (its length)
+      gendata.combforeach = [] // all combinations of word placements
+      gendata.pastgrids = [null]
+      if (gendata.usecurgrid) {
+        gendata.gridsize = int(gridobjectdata.width)
+        gendefinepositionscurgrid(gridobjectdata.stored)
+        expandinggrid = false
       } else {
-        let combs = []
-        for (let a = 0; a < (gridwidth+1-cluewords[i].length); a++) {
-          for (let i = 0; i < gridheight; i++) {
-            combs.push([a, i, false])
-          }
-        }
-        for (let a = 0; a < (gridheight+1-cluewords[i].length); a++) {
-          for (let i = 0; i < gridwidth; i++) {
-            combs.push([i, a, true])
-          }
-        }
-        shufflearray(combs) // so the grid isnt so across + topleft heavy, remove bias
-        combforeach.push(combs)
+        gendefinepositionsdefault()
       }
-      existinglengths.push(cluewords[i].length)
+      for (let num in gendata.totalcombos) {
+        if (num == 0) {
+          interfacedata.errornotice = "No grid found"
+          gendata.generating = false
+          gendata.progression = 0
+          gendata.history[1] = false
+          return
+        }
+      }
+      gendata.progression = 2
     }
-
-    let complexity = Array(totalcombinations.length)
-    complexity[totalcombinations.length-1] = 1
-    for (let i = totalcombinations.length-2; i >= 0; i--) {
-      complexity[i] = totalcombinations[i+1] * complexity[i+1]
+    let complexity = Array(gendata.totalcombos.length)
+    complexity[gendata.totalcombos.length-1] = 1
+    for (let i = gendata.totalcombos.length-2; i >= 0; i--) {
+      complexity[i] = gendata.totalcombos[i+1] * complexity[i+1]
     }
-    let totalcomplexity = complexity[0] * totalcombinations[0]
-    console.log(complexity,totalcomplexity)
+    let totalcomplexity = complexity[0] * gendata.totalcombos[0]
     let prevpercent = 0
-    let grid = [] // temporary fit in grid
-    let pushline = []
-    for (let j = 0; j < gridwidth; j++) {
-      pushline.push(["~", false, [false, false, false], [false, false, false]])
-    }
-    for (let i = 0; i < gridheight; i++) {
-      grid.push(structuredClone(pushline))
-    }
-    console.log(grid)
-    pastgrids[0] = structuredClone(grid)
-    let unsolved = true
-    let focusindex = 0
-    solvedgrids = []
-    solvedvalues = []
-    while (unsolved) {
-      newfix = wordfitallposition(cluewords[focusindex], grid, combforeach[focusindex], triedcombinations[focusindex], totalcombinations[focusindex], problemindices[focusindex])
-      let thiscomplexity = 0
-      for (let i = 0; i < complexity.length; i++) (
-        thiscomplexity += complexity[i] * triedcombinations[i]
-      )
-      if (Math.floor(100*thiscomplexity/totalcomplexity) > prevpercent) {
-        prevpercent = Math.floor(100*thiscomplexity/totalcomplexity)
-        console.log(prevpercent,"%", round(Date.now()/1000 - starttime))
+    if (gendata.progression == 2) {
+      grid = [] // temporary fit in grid
+      let pushline = []
+      for (let j = 0; j < gendata.gridsize; j++) {
+        pushline.push(["~", false, [false, false, false], [false, false, false]]) // content, assigned? [part of across, start, end] [part of down, start, end]
       }
-      if (newfix[2]) { // if exhausted all options for that word
-        triedcombinations[focusindex] = 999999999
-      } else {
-        grid = gridinsertion(cluewords[focusindex], combforeach[focusindex][newfix[0]], grid, focusindex)
-        triedcombinations[focusindex] = newfix[0]
-        if (focusindex == cluewords.length-1) {
-          if (connectedgrid(grid,gridwidth,gridheight)) { // if all interlinked
-            solvedgrids.push(structuredClone(grid))
-            let value = findintersects(grid,gridwidth,gridheight)
-            console.log("val",value)
-            console.log(structuredClone(grid))
-            solvedvalues.push(value)
-            expandinggrid = false
-            if (value == cluewords.length || thiscomplexity > 10000000000) {
-              unsolved = false
-            }
-          }
-          triedcombinations[focusindex] += 1
-          grid = structuredClone(pastgrids[focusindex])
-        } else {
-          focusindex += 1
-          pastgrids[focusindex] = structuredClone(grid)
+      for (let i = 0; i < gendata.gridsize; i++) {
+        grid.push(structuredClone(pushline))
+      }
+      gendata.pastgrids[0] = structuredClone(grid)
+      gendata.progression = 3
+    } else {
+      grid = structuredClone(gendata.pastgrids[gendata.pastgrids.length-1])
+    }
+    if (gendata.progression == 3) {
+      let unsolved = true
+      gendata.focusindex = 0
+      solvedgrids = []
+      solvedvalues = []
+      while (unsolved) {
+        newfix = wordfitallposition(gendata.cluewords[gendata.focusindex], grid, gendata.combforeach[gendata.focusindex], gendata.triedcombos[gendata.focusindex], gendata.totalcombos[gendata.focusindex], gendata.focusindex)
+        let thiscomplexity = 0
+        for (let i = 0; i < complexity.length; i++) (
+          thiscomplexity += complexity[i] * gendata.triedcombos[i]
+        )
+        if (Math.floor(100*thiscomplexity/totalcomplexity) > prevpercent) {
+          prevpercent = Math.floor(100*thiscomplexity/totalcomplexity)
         }
-      }
-      for (let ind = cluewords.length-1; ind >= 0; ind--) {
-        if (triedcombinations[ind] >= totalcombinations[ind]) {
-          if (ind == 0) {
-            unsolved = false
-            break
+        if (newfix[1]) { // if exhausted all options for that word
+          gendata.triedcombos[gendata.focusindex] = 9999999999
+        } else {
+          grid = gridinsertion(gendata.cluewords[gendata.focusindex], gendata.combforeach[gendata.focusindex][newfix[0]], grid, gendata.focusindex)
+          gendata.triedcombos[gendata.focusindex] = newfix[0]
+          if (gendata.focusindex == gendata.cluewords.length-1) {
+            if (connectedgrid(grid,gendata.gridsize,gendata.gridsize) || !gendata.mustconnect) { // if all interlinked
+              solvedgrids.push(structuredClone(grid))
+              let value = findintersects(grid,gendata.gridsize,gendata.gridsize) //- 0.1*findbars(grid,gendata.gridsize)
+              solvedvalues.push(value)
+              expandinggrid = false
+              if (value == gendata.cluewords.length || thiscomplexity > 10000000000) {
+                gendata.progression = 0
+                gendata.generating = false
+                unsolved = false
+              }
+            }
+            gendata.triedcombos[gendata.focusindex] += 1
+            grid = structuredClone(gendata.pastgrids[gendata.focusindex])
           } else {
-            triedcombinations[ind-1] += 1
-            focusindex = ind-1
-            for (let j = ind; j < cluewords.length; j++) {
-              triedcombinations[j] = 0
+            gendata.focusindex += 1
+            for (let gridid = gendata.pastgrids.length-1; gridid >= gendata.focusindex; gridid--) {
+              gendata.pastgrids.pop(gridid)
             }
-            grid = structuredClone(pastgrids[ind-1])
+            gendata.pastgrids.push(structuredClone(grid))
           }
         }
-      }
-      if (Date.now()/1000 > starttime + 99999999) {
-        unsolved = false
-        if (solvedgrids.length > 0) {
+        for (let ind = gendata.cluewords.length-1; ind >= 0; ind--) {
+          if (gendata.triedcombos[ind] >= gendata.totalcombos[ind]) {
+            if (ind == 0) {
+              unsolved = false
+              if (gendata.usecurgrid) {
+                interfacedata.errornotice = "No grid found"
+                gendata.generating = false
+                gendata.progression = 0
+                gendata.history[1] = false
+              }
+              break
+            } else {
+              gendata.triedcombos[ind-1] += 1
+              gendata.focusindex = ind-1
+              for (let j = ind; j < gendata.cluewords.length; j++) {
+                gendata.triedcombos[j] = 0
+              }
+              grid = structuredClone(gendata.pastgrids[ind-1])
+            }
+          }
+        }
+        for (let gridid = gendata.focusindex+1; gridid < gendata.pastgrids.length; gridid++) {
+          gendata.pastgrids.pop()
+        }
+        if (Date.now()/1000 > gendata.starttime + 15) {
+          unsolved = false
           expandinggrid = false
+          gendata.generating = false
+          interfacedata.errornotice = "Generator timed out after 15s"
+          break
         }
-        break
+        if (Date.now()/1000 > processtime + 0.5) {
+          expandinggrid = false
+          interfacedata.errornotice = "Testing combos: " + str(gendata.gridsize) + ":" + str(round(100*thiscomplexity/totalcomplexity) + "%")
+          break
+        }
       }
-    }
-    console.log("renew")
-    if (expandinggrid) {
-      gridwidth += 1
-      gridheight += 1
-      if (gridwidth > 25) {
-        solvedgrids.push(structuredClone(grid))
-        solvedvalues.push(0)
-        break
+      if (expandinggrid && !unsolved) {
+        gendata.gridsize += 1
+        gendata.progression = 1
+        if (gendata.gridsize > 15) {
+          gendata.gridsize = 15
+          gendata.progression = 0
+          gendata.history[1] = false
+          interfacedata.errornotice = "No crossgrid found"
+          break
+        }
       }
     }
   }
-  grid = structuredClone(solvedgrids[indexOfMax(solvedvalues)[0]])
-  gridobjectdata.width = gridwidth
-  gridobjectdata.height = gridheight // apply new grid into the official gridobjectdata
-  if (true) {
-    for (let y = 0; y < grid.length; y++) {
-      for (let x = 0; x < grid[y].length; x++) {
-        let value = grid[y][x][0]
-        if (value == "~") {
-          value = "~b"
-        } else {
-          value = value.toUpperCase()
+  if (solvedgrids.length > 0) {
+    interfacedata.errornotice = "Grid found!"
+    gendata.history[1] = false
+    grid = structuredClone(solvedgrids[indexOfMax(solvedvalues)[0]])
+    gridobjectdata.width = gendata.gridsize
+    gridobjectdata.height = gendata.gridsize // apply new grid into the official gridobjectdata
+    gendata.generating = false
+    if (true) {
+      for (let y = 0; y < grid.length; y++) {
+        for (let x = 0; x < grid[y].length; x++) {
+          let value = grid[y][x][0]
+          if (value == "~") {
+            if (gendata.usecurgrid) {
+              value = gridobjectdata.stored[x][y].content
+            } else {
+              value = "~b"
+            } 
+          } else {
+            value = value.toUpperCase()
+          }
+          gridobjectdata.stored[x][y].content = value
         }
-        gridobjectdata.stored[x][y].content = value
       }
     }
+    interfacedata.attris.width = createInput(gendata.gridsize)
+    interfacedata.attris.height = createInput(gendata.gridsize)
+    updateundo()
+    gendata.undolength += 1
   }
-  console.log(gridobjectdata)
-  console.log(gridobjectdata.fullwords)
-  interfacedata.attris.width = createInput(gridwidth)
-  interfacedata.attris.height = createInput(gridheight)
-  updateundo()
 }
 
 function drawattributetab(startx, starty, widthallowed) {
-  interfacedata.attris.width.position(startx + 5, 40);
+  textSize(widthallowed/15)
+  textAlign(LEFT,TOP)
+  fill("#000000")
+  let maxtextwidth = textWidth("Grid height: ")
+  text("Grid width: ", startx+5, starty+7)
+  interfacedata.attris.width.position(startx + 5 + maxtextwidth, starty + 5);
   interfacedata.attris.width.removeAttribute("disabled");
+  interfacedata.attris.width.size(min(100,windowWidth-(startx + 5 + maxtextwidth)), textLeading());
+  interfacedata.attris.width.style('font-size', str(textSize())+"px");
   if (interfacedata.attris.width.value() != gridobjectdata.width) {
     if (interfacedata.attris.width.value() < 26 && interfacedata.attris.width.value() > 2) {
       gridobjectdata.width = interfacedata.attris.width.value();
+    } else if (interfacedata.attris.width.value() < 0) {
+      interfacedata.attris.width.value(0)
     }
   }
-  interfacedata.attris.height.position(startx + 5, 80);
+  text("Grid height: ", startx+5, starty+7 + 1.5*textLeading())
+  interfacedata.attris.height.position(startx + 5 + maxtextwidth, starty + 5 + 1.5*textLeading());
   interfacedata.attris.height.removeAttribute("disabled");
+  interfacedata.attris.height.size(min(100,windowWidth-(startx + 5 + maxtextwidth)), textLeading());
+  interfacedata.attris.height.style('font-size', str(textSize())+"px");
   if (interfacedata.attris.height.value() != gridobjectdata.height) {
     if (interfacedata.attris.height.value() < 26 && interfacedata.attris.height.value() > 2) {
       gridobjectdata.height = interfacedata.attris.height.value();
     }
   }
+  /*
   interfacedata.attris.name.position(startx + 5, 120);
   interfacedata.attris.name.removeAttribute("disabled");
   if (interfacedata.attris.name.value() != gridobjectdata.name) {
@@ -1044,6 +1349,7 @@ function drawattributetab(startx, starty, widthallowed) {
       gridobjectdata.name = interfacedata.attris.name.value();
     }
   }
+  */
 }
 
 function attributetabclose() {
@@ -1055,7 +1361,6 @@ function attributetabclose() {
 function takescreenshot(starty,endy) {
   region = get(0, starty, windowWidth, endy);
   save(region, "xwired_grid.jpg");
-  console.log("imaged")
 }
 
 function exportreturn() {
@@ -1065,7 +1370,7 @@ function exportreturn() {
 function exportopen() {
   for (let y = 0; y < gridobjectdata.height; y++) {
     for (let x = 0; x < gridobjectdata.width; x++) {
-      if (gridobjectdata.stored[y][x].content == "~e") {
+      if (gridobjectdata.stored[x][y].content == "~e") {
         interfacedata.errornotice = "Unable to export: the crossgrid is not complete."
         return
       }
@@ -1077,7 +1382,6 @@ function exportopen() {
     interfacedata.errornotice = "Unable to export: not all clues have been assigned to each word in the grid."
   } else {
     for (let clue in interfacedata.assignedclues) {
-      console.log(clue)
       if (interfacedata.assignedclues[clue][1] == "") {
         interfacedata.errornotice = "Unable to export: not all clues have been assigned to each word in the grid."
         return
@@ -1088,10 +1392,10 @@ function exportopen() {
   }
 }
 
-function drawexportpage(cluelist, widthallowed, heightallowed, xstart, ystart) {
+function drawexportpage(unfilteredcluelist, widthallowed, heightallowed, xstart, ystart) {
   let colwidth = widthallowed
   heightallowed = heightallowed-ystart
-
+  textAlign(CENTER,BASELINE)
   textSize(ystart/3)
   fill("#F0E0FF")
   strokeWeight(2)
@@ -1110,7 +1414,18 @@ function drawexportpage(cluelist, widthallowed, heightallowed, xstart, ystart) {
   text("Return", 3*windowWidth/4, ystart/2+ystart/8)
   interfacedata.buttons.exportreturn = {x: 3*windowWidth/4-ystart, y: ystart/2 - ystart/5, dx: ystart + 3*windowWidth/4, dy: 7*ystart/10, func: exportreturn}
 
-  let textsizeused = 50
+  let cluelist = []
+  for (let j = 0; j < unfilteredcluelist.length; j++) {
+    for (let i = 0; i < gridobjectdata.fullwords.length; i++) {
+      if (unfilteredcluelist[j][0] == gridobjectdata.fullwords[i][2] && arraysEqual(unfilteredcluelist[j][2],gridobjectdata.fullwords[i][1])) {
+        cluelist.push(structuredClone(unfilteredcluelist[j]))
+        break;
+      }
+    }
+  }
+
+  textAlign(LEFT,BASELINE)
+  let textsizeused = 2*widthallowed/25
   textSize(textsizeused)
   let maxnumlen = textWidth("#".repeat(cluelist[cluelist.length-1][3].length))
   let ratio = 1
@@ -1118,6 +1433,7 @@ function drawexportpage(cluelist, widthallowed, heightallowed, xstart, ystart) {
   let iter = 0
   let aheight = 0
   let dheight = 0
+  let closeness = 0.01
   while (tryagi) {
     aheight = textLeading()
     dheight = textLeading()
@@ -1128,29 +1444,26 @@ function drawexportpage(cluelist, widthallowed, heightallowed, xstart, ystart) {
         dheight += textHeight(cluelist[i][1], colwidth*ratio/(ratio+1))
       }
     }
-    if (Math.abs(aheight-dheight)/(aheight+dheight) > 0.1) {
+    if (false){//Math.abs(aheight-dheight)/(aheight+dheight) > closeness) {
       ratio = ratio*(1-(aheight-dheight)/(aheight+dheight))
     } else {
       tryagi = false
     }
     iter += 1
-    console.log(aheight, dheight, ratio)
+    closeness += closeness/4
     if (iter > 100) {
       tryagi = false
     }
   }
   if (max([aheight,dheight]) > heightallowed-2) {
-    console.log("here ",(heightallowed) / max([aheight,dheight]))
     let scalar = Math.sqrt(Math.cbrt((heightallowed-2) / max([aheight,dheight])))
     while ((max([aheight,dheight]) > heightallowed-2)) {
       textsizeused = textsizeused * scalar
       textSize(textsizeused)
-      console.log(textsizeused, aheight, dheight)
       maxnumlen = textWidth("#".repeat(cluelist[cluelist.length-1][3].length))
       aheight = textLeading()
       dheight = textLeading()
       for (let i = 0; i < cluelist.length; i++) {
-        console.log("h",aheight,dheight)
         if (cluelist[i][2][2] == "A") {
           aheight += textHeight(cluelist[i][1], colwidth/(ratio+1) - 3 - maxnumlen)
         } else {
@@ -1159,7 +1472,16 @@ function drawexportpage(cluelist, widthallowed, heightallowed, xstart, ystart) {
       }
     }
   }
-  //console.log(aheight, dheight, heightallowed)
+  if (textWidth("Across") > colwidth/(ratio+1)-3 || textWidth("Down") > colwidth*ratio/(ratio+1)-3) {
+    let scalar = 0.97
+    while (textWidth("Across") > colwidth/(ratio+1)-3 || textWidth("Down") > colwidth*ratio/(ratio+1)-3) {
+      textsizeused = textsizeused * scalar
+      textSize(textsizeused)
+      if (textsizeused < 3) {
+        break
+      }
+    }
+  }
   fill("#000000")
   textAlign(LEFT,TOP)
   rect(xstart + colwidth/(ratio+1), ystart, 1, windowHeight)
@@ -1169,44 +1491,54 @@ function drawexportpage(cluelist, widthallowed, heightallowed, xstart, ystart) {
   let acolwidth = colwidth / (ratio + 1) - 3 - maxnumlen;
   let dcolwidth = colwidth * ratio / (ratio + 1) - 3 - maxnumlen;
   text("Across", xstart+2, ystart+2)
+  rect(xstart+2,ystart+textLeading()/1.2, textWidth("Across"), textsizeused/10)
   text("Down", xstart+2 + colwidth/(ratio+1), ystart+2)
+  rect(xstart+2 + colwidth/(ratio+1),ystart+textLeading()/1.2, textWidth("Down"), textsizeused/10)
   //let acolwidth = 150
   //let dcolwidth = 250
   for (let i = 0; i < cluelist.length; i++) {
-    //console.log(cluelist[i][3].slice(0,-1) + ")", xstart, ay, dy, maxnumlen, acolwidth, dcolwidth, heightallowed)
     if (cluelist[i][2][2] == "A") {
-      text(cluelist[i][3].slice(0,-1) + ")", xstart+2, ay+2)
-      drawwrappedtext(cluelist[i][1], xstart+maxnumlen+2, ay+2, acolwidth, textLeading())
-      console.log("ay",ay)
+      text(cluelist[i][3].slice(0,-1) + ")", xstart+2, ay)
+      drawwrappedtext(cluelist[i][1], xstart+maxnumlen+2, ay, acolwidth, textLeading())
       ay += textHeight(cluelist[i][1], acolwidth)
     } else {
-      text(cluelist[i][3].slice(0,-1) + ")", xstart+2 + colwidth/(ratio+1), dy+2)
-      drawwrappedtext(cluelist[i][1], xstart+maxnumlen+2 + colwidth/(ratio+1), dy+2, dcolwidth, textLeading())
-      console.log("dy",dy)
+      text(cluelist[i][3].slice(0,-1) + ")", xstart+2 + colwidth/(ratio+1), dy)
+      drawwrappedtext(cluelist[i][1], xstart+maxnumlen+2 + colwidth/(ratio+1), dy, dcolwidth, textLeading())
       dy += textHeight(cluelist[i][1], dcolwidth)
     }
   }
-  console.log(ay,dy,aheight,dheight,heightallowed,textLeading(),textHeight("#",999))
-  console.log("Rendering frame at", millis());
+}
+function togglecolourblind() {
+  setting.colourblind = !setting.colourblind
 }
 
 function drawsettingstab(startx, starty, widthallowed) {
   textSize(widthallowed/25)
   textAlign(LEFT,BASELINE);
+  let ydisp = 3
   fill("#F0E0FF")
   strokeWeight(2)
   stroke(0)
-  rect(startx+10, starty+5, widthallowed/3, widthallowed/20)
+  rect(startx+10, starty+ydisp+5, widthallowed/3, widthallowed/20)
   fill("#000000")
   noStroke()
-  text("Export Crossword", startx + 10 + widthallowed/200, starty+5+(widthallowed/24))
+  text("Export Crossword", startx + 10 + widthallowed/200, starty+ydisp+5+(widthallowed/24))
   interfacedata.buttons.exportopen = {x:startx+10, y:starty+5, dx:startx+widthallowed/3+10, dy:starty+5+widthallowed/20, func: exportopen}
   textAlign(LEFT, TOP)
-  text(interfacedata.errornotice, startx + 12 + widthallowed/3, starty+5, 2*widthallowed/3 - 4)
+  text(interfacedata.errornotice, startx + 12 + widthallowed/3, starty+ydisp+5, 2*widthallowed/3 - 4)
+  ydisp += 5+widthallowed/8
+  drawtoggle(startx+10, starty+ydisp, widthallowed/12, widthallowed/12, setting.colourblind)
+  interfacedata.buttons.setcolourblind = {x:startx+10, y:starty+ydisp, dx:startx+widthallowed/12+10, dy:starty+ydisp+widthallowed/12, func: togglecolourblind}
+  fill("#000000")
+  noStroke()
+  textAlign(LEFT,CENTER)
+  text("Colourblind mode", startx+15+widthallowed/12, starty+ydisp+widthallowed/24)
+  ydisp += widthallowed/12 + 10
 }
 
 function settingstabclose() {
   delete interfacedata.buttons.exportopen
+  delete interfacedata.buttons.setcolourblind
 }
 
 function hidedisable(inputelement) {
@@ -1245,7 +1577,7 @@ function drawtabs(startx, endx) {
 
 function draw() {
   textAlign(CENTER, BASELINE)
-  if (interfacedata.tabopen == 0 || interfacedata.tabopen == 3) {
+  if (interfacedata.tabopen != 1) {
     gridobjectdata.fullwords = []
     findstarts()
   }
@@ -1258,15 +1590,17 @@ function draw() {
   }
   if (interfacedata.tabopen == 0) {
     definedisplayedkeyboard(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1, false)
-  } else if (interfacedata.tabopen == 1) {
-    drawcluestab(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1)
-  } else if (interfacedata.tabopen == 2) {
-    drawattributetab(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1)
-  } else if (interfacedata.tabopen == 3) {
-    drawgentab(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1)
-  } else if (interfacedata.tabopen == 4) {
-    drawsettingstab(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1)
+  } else {gridobjectdata.selectdrag[4] = 0; if (interfacedata.tabopen == 1) {
+      drawcluestab(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1)
+    } else if (interfacedata.tabopen == 2) {
+      drawattributetab(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1)
+    } else if (interfacedata.tabopen == 3) {
+      drawgentab(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1)
+    } else if (interfacedata.tabopen == 4) {
+      drawsettingstab(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1)
+    }
   }
+  textAlign(LEFT,BASELINE);
   drawdragselection(gridobjectdata.selectdrag)
   if (interfacedata.tabopen != 5) {
     drawtabs(gridobjectdata.widthend + 2, windowWidth - 2)
@@ -1274,6 +1608,9 @@ function draw() {
     delete interfacedata.buttons.exportreturn
   } else {
     drawexportpage(interfacedata.assignedclues, windowWidth-gridobjectdata.widthend-1,gridobjectdata.trueheight, gridobjectdata.widthend, gridobjectdata.heightend - gridobjectdata.trueheight)
+  }
+  if (gendata.generating) {
+    generatecrossword()
   }
 }
 
@@ -1319,7 +1656,7 @@ function keypressed(key) {
       windowResized();
       break;
     case "`":
-      gridobjectdata.height += 1;
+      //gridobjectdata.height += 1;
       break;
     case "ctrl z":
       unredo(0);
@@ -1328,14 +1665,9 @@ function keypressed(key) {
       unredo(1);
       break;
     case "-":
-      drawexportpage(interfacedata.assignedclues, windowWidth-gridobjectdata.truewidth-1,gridobjectdata.trueheight)
+      //drawexportpage(interfacedata.assignedclues, windowWidth-gridobjectdata.truewidth-1,gridobjectdata.trueheight)
       break;
     case "=":
-      if (interfacedata.tabopen == 5) {
-        interfacedata.tabopen = 0
-      } else {
-        interfacedata.tabopen = 5
-      }
       break;
     default:
       if (gridobjectdata.selectdrag[4] == 1) {
@@ -1448,6 +1780,7 @@ function gotonextselect(forward = true, direction = true) {
 function mousePressed() {
   console.log("Click!", mouseX, mouseY);
   interfacedata.errornotice = ""
+  interfacedata.scrolledmousestart = mouseY
   for (let button in interfacedata.buttons) {
     if (mouseX > interfacedata.buttons[button].x && mouseX < interfacedata.buttons[button].dx && mouseY > interfacedata.buttons[button].y && mouseY < interfacedata.buttons[button].dy) {
       if (interfacedata.buttons[button].length=6) {
@@ -1514,17 +1847,41 @@ function mousePressed() {
 }
 
 function mouseDragged() {
+  /*
   if (interfacedata.tabopen == 0) {
-    console.log("Drag ", gridobjectdata.selectdrag)
-    gridobjectdata.selectdrag[4] = 2
     if (mouseX <= gridobjectdata.truewidth-1 && mouseY <= gridobjectdata.trueheight-1) {
+      console.log("Drag ", gridobjectdata.selectdrag)
+      gridobjectdata.selectdrag[4] = 2
       gridobjectdata.selectdrag[2] = Math.floor(gridobjectdata.width * mouseX / gridobjectdata.truewidth)
       gridobjectdata.selectdrag[3] = Math.floor(gridobjectdata.height * mouseY / gridobjectdata.trueheight)
+    }
+  }*/
+  if (interfacedata.scrolledmousestart != false) {
+    if (interfacedata.tabopen == 1) {
+      interfacedata.scrolledclues += interfacedata.scrolledmousestart - mouseY
+      interfacedata.scrolledmousestart = mouseY
+      let lowerlimit = gridobjectdata.fullwords.length*80-windowHeight+32
+      if (interfacedata.scrolledclues < 0 || lowerlimit < 0) {
+        interfacedata.scrolledclues = 0
+      } else if (interfacedata.scrolledclues > lowerlimit) {
+        interfacedata.scrolledclues = lowerlimit
+      }
+    } else if (interfacedata.tabopen == 3) {
+      interfacedata.scrolledgen += interfacedata.scrolledmousestart - mouseY
+      interfacedata.scrolledmousestart = mouseY
+      let lowerlimit = interfacedata.generatorwords.length*40-windowHeight+300
+      if (interfacedata.scrolledgen < 0 || lowerlimit < 0) {
+        interfacedata.scrolledgen = 0
+      } else if (interfacedata.scrolledgen > lowerlimit) {
+        interfacedata.scrolledgen = lowerlimit
+      }
     }
   }
 }
 
 function mouseReleased() {
+  interfacedata.scrolledmousestart = false
+  /*
   if (gridobjectdata.selectdrag[4] == 2) {
     gridobjectdata.selectdrag[4] = 1
     if (gridobjectdata.selectdrag[2] < gridobjectdata.selectdrag[0]) {
@@ -1535,6 +1892,7 @@ function mouseReleased() {
     }
     console.log("Drag done ", gridobjectdata.selectdrag)
   }
+  */
 }
 
 function mouseWheel(event) {
@@ -1548,7 +1906,7 @@ function mouseWheel(event) {
     }
   } else if (interfacedata.tabopen == 3) {
     interfacedata.scrolledgen -= event.delta
-    let lowerlimit = interfacedata.generatorwords.length*40-windowHeight+72
+    let lowerlimit = interfacedata.generatorwords.length*40-windowHeight+300
     if (interfacedata.scrolledgen < 0 || lowerlimit < 0) {
       interfacedata.scrolledgen = 0
     } else if (interfacedata.scrolledgen > lowerlimit) {
