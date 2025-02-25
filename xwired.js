@@ -216,8 +216,8 @@ function updateundo() {
 function unredo(type) {
   if (type === 0 && undologs[0] > 1) {
     gridobjectdata = structuredClone(undologs[undologs[0]-1])
-    interfacedata.attris.width = createInput(gridobjectdata.width)
-    interfacedata.attris.height = createInput(gridobjectdata.height)
+    interfacedata.attris.width = createInput(gridobjectdata.width, "number")
+    interfacedata.attris.height = createInput(gridobjectdata.height, "number")
     undologs[0]--
   } else if (type === 1 && undologs[0] < undologs.length-1) {
     gridobjectdata = structuredClone(undologs[undologs[0]+1])
@@ -694,7 +694,7 @@ function drawgentab(startx, starty, widthallowed) {
   textSize(widthallowed/25)
   textAlign(LEFT);
   fill(colourscheme.cellwall)
-  let ydisp = -interfacedata.scrolledgen + width/50
+  let ydisp = -interfacedata.scrolledgen + widthallowed/25
   desctext = "This is the crossword generator, it takes input words and creates a crossword grid out of them! This may take some time, and may clear the current grid."
   text(desctext, startx+5, starty+ydisp, widthallowed-10)
   ydisp += textHeight(desctext,widthallowed-10)-5
@@ -1328,8 +1328,8 @@ function generatecrossword() {
         }
       }
     }
-    interfacedata.attris.width = createInput(gendata.gridsize)
-    interfacedata.attris.height = createInput(gendata.gridsize)
+    interfacedata.attris.width = createInput(gendata.gridsize, "number")
+    interfacedata.attris.height = createInput(gendata.gridsize, "number")
     updateundo()
     gendata.undolength += 1
   }
@@ -1892,7 +1892,8 @@ function mouseDragged() {
     } else if (interfacedata.tabopen == 3) {
       interfacedata.scrolledgen += interfacedata.scrolledmousestart - mouseY
       interfacedata.scrolledmousestart = mouseY
-      let lowerlimit = interfacedata.generatorwords.length*40-windowHeight+300
+      let lowerlimit = interfacedata.generatorwords.length*40-windowHeight+(windowWidth-gridobjectdata.widthend)/1.4
+      console.log(lowerlimit)
       if (interfacedata.scrolledgen < 0 || lowerlimit < 0) {
         interfacedata.scrolledgen = 0
       } else if (interfacedata.scrolledgen > lowerlimit) {
@@ -1929,7 +1930,7 @@ function mouseWheel(event) {
     }
   } else if (interfacedata.tabopen == 3) {
     interfacedata.scrolledgen -= event.delta
-    let lowerlimit = interfacedata.generatorwords.length*40-windowHeight+300
+    let lowerlimit = interfacedata.generatorwords.length*40-windowHeight+(windowWidth-gridobjectdata.widthend)/1.4
     if (interfacedata.scrolledgen < 0 || lowerlimit < 0) {
       interfacedata.scrolledgen = 0
     } else if (interfacedata.scrolledgen > lowerlimit) {
