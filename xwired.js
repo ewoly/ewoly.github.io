@@ -764,15 +764,17 @@ function drawgentab(startx, starty, widthallowed) {
   }
   fill("#000000")
   noStroke()
+  ydisp += 3 + widthallowed/24
   if (gendata.generating) {
     drawgenprogress(startx+5, starty+ydisp, widthallowed-10, interfacedata.errornotice)
     interfacedata.errornotice = ""
+    
   }
-  ydisp += 3 + widthallowed/12
+  ydisp += 3 + widthallowed/24
   if (!gendata.generating && interfacedata.errornotice != "") {
     drawgenprogress(startx+5, starty+ydisp, widthallowed-10, interfacedata.errornotice)
   }
-  ydisp += widthallowed/12
+  ydisp += widthallowed/24
   textSize(widthallowed/25)
   fill("#000000")
   text("Generator words:", startx+5, starty+ydisp, widthallowed-10)
@@ -1551,8 +1553,10 @@ function drawsettingstab(startx, starty, widthallowed) {
   text("Export Crossword", startx + 10 + widthallowed/200, starty+ydisp+5+(widthallowed/24))
   interfacedata.buttons.exportopen = {x:startx+10, y:starty+5, dx:startx+widthallowed/3+10, dy:starty+5+widthallowed/20, func: exportopen}
   textAlign(LEFT, TOP)
-  text(interfacedata.errornotice, startx + 12 + widthallowed/3, starty+ydisp+5, 2*widthallowed/3 - 4)
+  textSize(widthallowed/30)
+  text(interfacedata.errornotice, startx + 12 + widthallowed/3 + widthallowed/200, starty+ydisp+5, 2*widthallowed/3 - 15)
   ydisp += 5+widthallowed/8
+  textSize(widthallowed/25)
   drawtoggle(startx+10, starty+ydisp, widthallowed/12, widthallowed/12, setting.colourblind)
   interfacedata.buttons.setcolourblind = {x:startx+10, y:starty+ydisp, dx:startx+widthallowed/12+10, dy:starty+ydisp+widthallowed/12, func: togglecolourblind}
   fill("#000000")
@@ -1930,7 +1934,7 @@ function mouseReleased() {
 
 function mouseWheel(event) {
   if (interfacedata.tabopen == 1) {
-    interfacedata.scrolledclues -= event.delta
+    interfacedata.scrolledclues += event.delta
     let lowerlimit = gridobjectdata.fullwords.length*80-windowHeight+32
     if (interfacedata.scrolledclues < 0 || lowerlimit < 0) {
       interfacedata.scrolledclues = 0
@@ -1938,8 +1942,8 @@ function mouseWheel(event) {
       interfacedata.scrolledclues = lowerlimit
     }
   } else if (interfacedata.tabopen == 3) {
-    interfacedata.scrolledgen -= event.delta
-    let lowerlimit = interfacedata.generatorwords.length*40-windowHeight+(windowWidth-gridobjectdata.widthend)/1.4
+    interfacedata.scrolledgen += event.delta
+    let lowerlimit = interfacedata.generatorwords.length*40-windowHeight+(windowWidth-gridobjectdata.widthend)/1.3
     if (interfacedata.scrolledgen < 0 || lowerlimit < 0) {
       interfacedata.scrolledgen = 0
     } else if (interfacedata.scrolledgen > lowerlimit) {
@@ -1967,7 +1971,7 @@ function touchMoved() {
     } else if (interfacedata.tabopen == 3) {
       interfacedata.scrolledgen += interfacedata.scrolledmousestart - mouseY
       interfacedata.scrolledmousestart = mouseY
-      let lowerlimit = interfacedata.generatorwords.length*40-windowHeight+(windowWidth-gridobjectdata.widthend)/1.4
+      let lowerlimit = interfacedata.generatorwords.length*40-windowHeight+(windowWidth-gridobjectdata.widthend)/1.3
       console.log(lowerlimit)
       if (interfacedata.scrolledgen < 0 || lowerlimit < 0) {
         interfacedata.scrolledgen = 0
