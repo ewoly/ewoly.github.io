@@ -696,6 +696,9 @@ function drawgentab(startx, starty, widthallowed) {
   fill(colourscheme.cellwall)
   let ydisp = -interfacedata.scrolledgen + widthallowed/25
   desctext = "This is the crossword generator, it takes input words and creates a crossword grid out of them! This may take some time, and may clear the current grid."
+  if (-windowHeight+(windowWidth-gridobjectdata.widthend)/1.3 > 0) {
+    desctext += " Please scroll down by dragging."
+  }
   text(desctext, startx+5, starty+ydisp, widthallowed-10)
   ydisp += textHeight(desctext,widthallowed-10)-5
   drawtoggle(startx+10, starty+ydisp, widthallowed/12, widthallowed/12, gendata.mustconnect)
@@ -1107,7 +1110,7 @@ function gendefinepositionscurgrid(curgrid) {
       for (let b = 0; b < gendata.gridsize; b++) {
         let fitsin = true
         for (let x = 0; x < gendata.cluewords[i].length; x++) {
-          if (!(curgrid[b][a+x].content == "~e" || curgrid[b][a+x].content == gendata.cluewords[i][x]) || curgrid[b][a+x].content == "~b" || (curgrid[b][a+x].barredy && x != gendata.cluewords[i].length-1)) {
+          if (!(curgrid[b][a+x].content == "~e" || curgrid[b][a+x].content == gendata.cluewords[i][x].toUpperCase()) || curgrid[b][a+x].content == "~b" || (curgrid[b][a+x].barredy && x != gendata.cluewords[i].length-1)) {
             fitsin = false
             break
           }
@@ -1312,10 +1315,8 @@ function generatecrossword() {
         for (let x = 0; x < grid[y].length; x++) {
           let value = grid[y][x][0]
           if (value == "~") {
-            if (gendata.usecurgrid) {
-              if (gridobjectdata.stored[x][y].content != "~e") {
-                value = gridobjectdata.stored[x][y].content
-              }
+            if (gendata.usecurgrid && gridobjectdata.stored[x][y].content != "~e") {
+              value = gridobjectdata.stored[x][y].content
             } else if (!gendata.wallfill) {
               value = "~e"
             } else {
@@ -1609,6 +1610,10 @@ function draw() {
     background(colourscheme.background);
     drawcrossgrid()
   }
+  rectMode(CORNER)
+  fill("#000000")
+  rect(-4,-40,windowWidth+8, 40)
+  rect(-4,windowHeight,windowWidth+8, 40)
   if (interfacedata.tabopen == 0) {
     definedisplayedkeyboard(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1, false)
   } else {gridobjectdata.selectdrag[4] = 0; if (interfacedata.tabopen == 1) {
@@ -1633,9 +1638,6 @@ function draw() {
   if (gendata.generating) {
     generatecrossword()
   }
-  fill("#000000")
-  textSize(25)
-  text(interfacedata.errornotice, 60, 60)
 }
 
 // taking inputs
@@ -1803,7 +1805,6 @@ function gotonextselect(forward = true, direction = true) {
 function mousePressed() {
   if (!gendata.generating) {
     console.log("Click!", mouseX, mouseY);
-    interfacedata.errornotice = str(mouseX) + " " + str(mouseY)
     interfacedata.scrolledmousestart = mouseY
     for (let button in interfacedata.buttons) {
       if (mouseX > interfacedata.buttons[button].x && mouseX < interfacedata.buttons[button].dx && mouseY > interfacedata.buttons[button].y && mouseY < interfacedata.buttons[button].dy) {
@@ -1946,7 +1947,6 @@ function touchStarted() {
 }
 
 function touchMoved() {
-  interfacedata.errornotice = str(interfacedata.scrolledmousestart)
   if (interfacedata.scrolledmousestart != false) {
     if (interfacedata.tabopen == 1) {
       interfacedata.scrolledclues += interfacedata.scrolledmousestart - mouseY
