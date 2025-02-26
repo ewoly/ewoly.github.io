@@ -1941,6 +1941,10 @@ function mouseWheel(event) {
   }
 }
 
+function touchStarted() {
+  interfacedata.scrolledmousestart = mouseY
+}
+
 function touchMoved() {
   interfacedata.errornotice = str(interfacedata.scrolledmousestart)
   if (interfacedata.scrolledmousestart != false) {
