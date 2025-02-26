@@ -18,7 +18,7 @@ var interfacedata = {
   generatorwords: [1, [null,""]],
   attris: {width: null, height: null, name: null, desc: null},
   buttons: {},
-  errornotice: ["",0,0,0]
+  errornotice: ""
 }
 
 var gendata = {
