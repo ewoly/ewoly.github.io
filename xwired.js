@@ -1805,6 +1805,7 @@ function gotonextselect(forward = true, direction = true) {
 function mousePressed() {
   if (!gendata.generating) {
     console.log("Click!", mouseX, mouseY);
+    interfacedata.errornotice = ""
     interfacedata.scrolledmousestart = mouseY
     for (let button in interfacedata.buttons) {
       if (mouseX > interfacedata.buttons[button].x && mouseX < interfacedata.buttons[button].dx && mouseY > interfacedata.buttons[button].y && mouseY < interfacedata.buttons[button].dy) {
@@ -1943,6 +1944,7 @@ function mouseWheel(event) {
 }
 
 function touchStarted() {
+  interfacedata.errornotice = ""
   interfacedata.scrolledmousestart = mouseY
 }
 
