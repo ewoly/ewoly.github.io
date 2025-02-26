@@ -18,7 +18,8 @@ var interfacedata = {
   generatorwords: [1, [null,""]],
   attris: {width: null, height: null, name: null, desc: null},
   buttons: {},
-  errornotice: ""
+  errornotice: "",
+  timesincetab: 0,
 }
 
 var gendata = {
@@ -1390,27 +1391,30 @@ function exportreturn() {
 }
 
 function exportopen() {
-  for (let y = 0; y < gridobjectdata.height; y++) {
-    for (let x = 0; x < gridobjectdata.width; x++) {
-      if (gridobjectdata.stored[x][y].content == "~e") {
-        interfacedata.errornotice = "Unable to export: the crossgrid is not complete."
-        return
+  if (Date.now() - interfacedata.timesincetab > 600) {
+    interfacedata.timesincetab = Date.now()
+    for (let y = 0; y < gridobjectdata.height; y++) {
+      for (let x = 0; x < gridobjectdata.width; x++) {
+        if (gridobjectdata.stored[x][y].content == "~e") {
+          interfacedata.errornotice = "Unable to export: the crossgrid is not complete."
+          return
+        }
       }
     }
-  }
-  cluestabinit()
-  cluestabclose()
-  if (interfacedata.assignedclues.length == 0) {
-    interfacedata.errornotice = "Unable to export: not all clues have been assigned to each word in the grid."
-  } else {
-    for (let clue in interfacedata.assignedclues) {
-      if (interfacedata.assignedclues[clue][1] == "") {
-        interfacedata.errornotice = "Unable to export: not all clues have been assigned to each word in the grid."
-        return
+    cluestabinit()
+    cluestabclose()
+    if (interfacedata.assignedclues.length == 0) {
+      interfacedata.errornotice = "Unable to export: not all clues have been assigned to each word in the grid."
+    } else {
+      for (let clue in interfacedata.assignedclues) {
+        if (interfacedata.assignedclues[clue][1] == "") {
+          interfacedata.errornotice = "Unable to export: not all clues have been assigned to each word in the grid."
+          return
+        }
       }
+      interfacedata.tabopen = 5
+      settingstabclose()
     }
-    interfacedata.tabopen = 5
-    settingstabclose()
   }
 }
 
@@ -1610,10 +1614,6 @@ function draw() {
     background(colourscheme.background);
     drawcrossgrid()
   }
-  rectMode(CORNER)
-  fill("#000000")
-  rect(-4,-40,windowWidth+8, 40)
-  rect(-4,windowHeight,windowWidth+8, 40)
   if (interfacedata.tabopen == 0) {
     definedisplayedkeyboard(gridobjectdata.widthend,32,windowWidth-gridobjectdata.widthend-1, false)
   } else {gridobjectdata.selectdrag[4] = 0; if (interfacedata.tabopen == 1) {
@@ -1635,6 +1635,10 @@ function draw() {
   } else {
     drawexportpage(interfacedata.assignedclues, windowWidth-gridobjectdata.widthend-1,gridobjectdata.trueheight, gridobjectdata.widthend, gridobjectdata.heightend - gridobjectdata.trueheight)
   }
+  rectMode(CORNER)
+  fill("#000000")
+  rect(-4,-40,windowWidth+8, 40)
+  rect(-4,windowHeight,windowWidth+8, 40)
   if (gendata.generating) {
     generatecrossword()
   }
@@ -1833,7 +1837,8 @@ function mousePressed() {
       definedisplayedkeyboard(gridobjectdata.truewidth,30,windowWidth-gridobjectdata.truewidth-1, true)
     }
     if (interfacedata.tabopen != 5) {
-      if (mouseY > 0 && mouseY < 30) {
+      if (mouseY > 0 && mouseY < 30 && Date.now() - interfacedata.timesincetab > 400) {
+        interfacedata.timesincetab = Date.now()
         let tabwidth = (windowWidth-gridobjectdata.truewidth-4)/5
         if (mouseX >= gridobjectdata.truewidth+2 && mouseX < gridobjectdata.truewidth+2 + tabwidth) {
           if (interfacedata.tabopen == 1) {
