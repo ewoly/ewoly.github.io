@@ -1328,6 +1328,10 @@ function generatecrossword() {
           } else {
             value = value.toUpperCase()
           }
+          if (!gendata.usecurgrid) {
+            gridobjectdata.stored[x][y].barredx = false
+            gridobjectdata.stored[x][y].barredy = false
+          }
           gridobjectdata.stored[x][y].content = value
         }
       }
