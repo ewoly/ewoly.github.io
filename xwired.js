@@ -30,6 +30,7 @@ var gendata = {
   triedcombos: [],
   totalcombos: [],
   pastgrids: [],
+  problemindices: [],
   progression: 0,
   focusindex: 0,
   gridsize: 0,
@@ -917,6 +918,7 @@ function wordfitallposition(word, grid, positions, attempted, totals, order) {
   let repeatagain = true
   while (repeatagain) {
     i++
+    console.log(i)
     if (i >= totals) {
       repeatagain = false
       break
@@ -1181,8 +1183,8 @@ function generatecrossword() {
       } else {
         gendefinepositionsdefault()
       }
-      console.log(gendata.combforeach)
-      console.log(gendata.totalcombos)
+      //console.log(gendata.combforeach)
+      //console.log(gendata.totalcombos)
       for (let x = 0; x < gendata.totalcombos.length; x++) {
         if (gendata.totalcombos[x] == 0) {
           interfacedata.errornotice = "No grid found"
@@ -1221,6 +1223,7 @@ function generatecrossword() {
       solvedgrids = []
       solvedvalues = []
       while (unsolved) {
+        //console.log(gendata.triedcombos)
         newfix = wordfitallposition(gendata.cluewords[gendata.focusindex], grid, gendata.combforeach[gendata.focusindex], gendata.triedcombos[gendata.focusindex], gendata.totalcombos[gendata.focusindex], gendata.focusindex)
         let thiscomplexity = 0
         for (let i = 0; i < complexity.length; i++) (
@@ -1249,6 +1252,8 @@ function generatecrossword() {
             gendata.triedcombos[gendata.focusindex] += 1
             grid = structuredClone(gendata.pastgrids[gendata.focusindex])
           } else {
+            //console.log("func grid", grid)
+            //console.log(structuredClone(gendata.pastgrids))
             gendata.focusindex += 1
             for (let gridid = gendata.pastgrids.length-1; gridid >= gendata.focusindex; gridid--) {
               gendata.pastgrids.pop(gridid)
@@ -1261,7 +1266,9 @@ function generatecrossword() {
             if (ind == 0) {
               unsolved = false
               if (gendata.usecurgrid) {
-                interfacedata.errornotice = "No grid found"
+                interfacedata.errornotice = "No crossgrid found"
+                expandinggrid = false
+                unsolved = false
                 gendata.generating = false
                 gendata.progression = 0
                 gendata.history[1] = false
@@ -1289,6 +1296,7 @@ function generatecrossword() {
         }
         if (Date.now()/1000 > processtime + 0.5) {
           expandinggrid = false
+          console.log("Try")
           interfacedata.errornotice = "Testing combos: " + str(gendata.gridsize) + ":" + str(round(100*thiscomplexity/totalcomplexity) + "%")
           break
         }
@@ -1455,7 +1463,8 @@ function drawexportpage(unfilteredcluelist, widthallowed, heightallowed, xstart,
       }
     }
   }
-
+  cluelist.sort((a, b) => a[3].localeCompare(b[3]))
+  cluelist.sort((a, b) => a[3].length - b[3].length)
   textAlign(LEFT,BASELINE)
   let textsizeused = 2*widthallowed/25
   textSize(textsizeused)
@@ -1488,13 +1497,14 @@ function drawexportpage(unfilteredcluelist, widthallowed, heightallowed, xstart,
     }
   }
   if (max([aheight,dheight]) > heightallowed-2) {
-    let scalar = Math.sqrt(Math.cbrt((heightallowed-2) / max([aheight,dheight])))
+    let scalar = Math.cbrt(Math.cbrt((heightallowed-2) / max([aheight,dheight])))
     while ((max([aheight,dheight]) > heightallowed-2)) {
       textsizeused = textsizeused * scalar
       textSize(textsizeused)
       maxnumlen = textWidth("#".repeat(cluelist[cluelist.length-1][3].length))
       aheight = textLeading()
       dheight = textLeading()
+      console.log(textsizeused)
       for (let i = 0; i < cluelist.length; i++) {
         if (cluelist[i][2][2] == "A") {
           aheight += textHeight(cluelist[i][1], colwidth/(ratio+1) - 3 - maxnumlen)
