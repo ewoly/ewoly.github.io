@@ -20,6 +20,7 @@ var interfacedata = {
   buttons: {},
   errornotice: "",
   timesincetab: 0,
+  clipboard: [],
 }
 
 var gendata = {
@@ -40,6 +41,7 @@ var gendata = {
   wallfill: true,
   starttime: 0,
   undolength: 0,
+  fastgen: false,
 }
 var setting = {
   colourblind: false,
@@ -61,8 +63,11 @@ const shadesymbols = ["","","R","G","B","V"]
 var undologs = [1]
 
 function preload() { 
+  document.title = "xwired"
   usedfont = loadFont("Roboto-Medium.ttf") // WOO
+  document.addEventListener("keydown", window.scriptKeyListener);
   //usedfont = loadFont("SquareE.ttf")
+  console.log("preload")
 }
 
 function setup() {
@@ -83,6 +88,7 @@ function setup() {
   interfacedata.attris.height = createInput(gridobjectdata.height, "number")
   interfacedata.attris.name = createInput()
   interfacedata.attris.desc = createInput()
+  console.log("setup")
 }
 
 function randint(min, max) {
@@ -98,7 +104,7 @@ function shufflearray(array) {
   }
 }
 
-function isAlphanumeric(str) { // obtained online
+function isAlphanumeric(str) {
   return /^[a-zA-Z0-9]+$/.test(str);
 }
 
@@ -131,7 +137,6 @@ function indexOfMax(arr) {
 }
 
 function calculateWrappedLines(text, maxWidth) {
-  //console.log("made here")
   const words = text.split(' ');
   let lines = [];
   let currentLine = '';
@@ -224,6 +229,39 @@ function unredo(type) {
   } else if (type === 1 && undologs[0] < undologs.length-1) {
     gridobjectdata = structuredClone(undologs[undologs[0]+1])
     undologs[0]++
+  }
+}
+
+function useclip(type) {
+  if (type < 2) {
+    interfacedata.clipboard = []
+    if (gridobjectdata.selectdrag[4] == 1) {
+      for (let x = gridobjectdata.selectdrag[0]; x <= gridobjectdata.selectdrag[2]; x++) {
+        let pushline = []
+        for (let y = gridobjectdata.selectdrag[1]; y <= gridobjectdata.selectdrag[3]; y++) {
+          pushline.push(structuredClone(gridobjectdata.stored[x][y]))
+          if (type == 0) {
+            gridobjectdata.stored[x][y] = {content: "~e", shading: 0, shape: "none", barredx: false, barredy: false, startofclue: [0, false, 0, false, 0]}
+          }
+        }
+        interfacedata.clipboard.push(pushline)
+      }
+    } else {
+      interfacedata.clipboard.push([structuredClone(gridobjectdata.stored[gridobjectdata.selectdrag[0]][gridobjectdata.selectdrag[1]])])
+      if (type == 0) {
+        gridobjectdata.stored[gridobjectdata.selectdrag[0]][gridobjectdata.selectdrag[1]] = {content: "~e", shading: 0, shape: "none", barredx: false, barredy: false, startofclue: [0, false, 0, false, 0]}
+      }
+    }
+    if (type == 0) {updateundo()};
+  } else {
+    for (let x = gridobjectdata.selectposition[0]; x < gridobjectdata.selectposition[0]+interfacedata.clipboard.length; x++) {
+      for (let y = gridobjectdata.selectposition[1]; y < gridobjectdata.selectposition[1]+interfacedata.clipboard[0].length; y++) {
+        if (x<26 && y<26) {
+          gridobjectdata.stored[x][y] = structuredClone(interfacedata.clipboard[x-gridobjectdata.selectposition[0]][y-gridobjectdata.selectposition[1]])
+        }
+      }
+    }
+    updateundo()
   }
 }
 
@@ -823,14 +861,16 @@ function wordfitinposition(position, word, grid, order) {
   let y = position[1]
   let height = grid.length
   let width = grid[0].length
-  let works = true
+  if (grid[2][2][0] == "W" && grid[0][0][0] == "T" && grid[0][2][0] == "I" && grid[1][0][0] == "O" && position[0] == 0 && position[0] == 0) {
+    console.log(position, word, structuredClone(grid))
+  }
   //let fits = false
   if (position[2]) {
     for (let i = 0; i < word.length; i++) { // match word's letters down
       let posletter = grid[y+i][x][0]
       if (!(posletter == "~" || posletter == word[i])) {
-        works = false
-        break
+        gendata.problemindices[order].push(posletter[4])
+        return false
       }
       //if (posletter == word[i]) {
         //fits = true
@@ -841,20 +881,22 @@ function wordfitinposition(position, word, grid, order) {
     //}
     if (y > 0) {
       if (grid[y-1][x][0] != "~") { // above is empty
-        works = false
+        gendata.problemindices[order].push(grid[y-1][x][4])
+        return false
       }
     }
     if (y < height-word.length) {
       if (grid[y+word.length][x][0] != "~") { // below is empty
-        works = false
+        gendata.problemindices[order].push(grid[y+word.length][x][4])
+        return false
       }
     }
     if (x > 0) {
       for (let i = 0; i < word.length; i++) { // leftwards
         let posletter = grid[y+i][x-1]
         if (posletter[0] != "~" && posletter[1] && ((posletter[3][0] && !posletter[2][0]) || posletter[2][2])) { // if left also down or end of word
-          works = false
-          break
+          gendata.problemindices[order].push(posletter[4])
+          return false
         }
       }
     }
@@ -862,8 +904,8 @@ function wordfitinposition(position, word, grid, order) {
       for (let i = 0; i < word.length; i++) {
         let posletter = grid[y+i][x+1]
         if (posletter[0] != "~" && posletter[1] && ((posletter[3][0] && !posletter[2][0]) || posletter[2][1])) {
-          works = false
-          break
+          gendata.problemindices[order].push(posletter[4])
+          return false
         }
       }
     }
@@ -871,8 +913,8 @@ function wordfitinposition(position, word, grid, order) {
     for (let i = 0; i < word.length; i++) {
       let posletter = grid[y][x+i][0]
       if (!(posletter == "~" || posletter == word[i])) {
-        works = false
-        break
+        gendata.problemindices[order].push(posletter[4])
+        return false
       }
       //if (posletter == word[i]) {
         //fits = true
@@ -883,20 +925,22 @@ function wordfitinposition(position, word, grid, order) {
     //}
     if (x > 0) {
       if (grid[y][x-1][0] != "~") {
-        works = false
+        gendata.problemindices[order].push(grid[y][x-1][4])
+        return false
       }
     }
     if (x < width-word.length) {
       if (grid[y][x+word.length][0] != "~") {
-        works = false
+        gendata.problemindices[order].push(grid[y][x+word.length][4])
+        return false
       }
     }
     if (y > 0) {
       for (let i = 0; i < word.length; i++) {
         let posletter = grid[y-1][x+i]
         if (posletter[0] != "~" && posletter[1] && ((posletter[2][0] && !posletter[3][0]) || posletter[3][2])) {
-          works = false
-          break
+          gendata.problemindices[order].push(posletter[4])
+          return false
         }
       }
     }
@@ -904,13 +948,13 @@ function wordfitinposition(position, word, grid, order) {
       for (let i = 0; i < word.length; i++) {
         let posletter = grid[y+1][x+i]
         if (posletter[0] != "~" && posletter[1] && ((posletter[2][0] && !posletter[3][0]) || posletter[3][1])) {
-          works = false
-          break
+          gendata.problemindices[order].push(posletter[4])
+          return false
         }
       }
     }
   }
-  return works
+  return true
 }
 
 function wordfitallposition(word, grid, positions, attempted, totals, order) {
@@ -918,7 +962,6 @@ function wordfitallposition(word, grid, positions, attempted, totals, order) {
   let repeatagain = true
   while (repeatagain) {
     i++
-    console.log(i)
     if (i >= totals) {
       repeatagain = false
       break
@@ -935,12 +978,12 @@ function gridinsertion(word, position, grid, index) { // put the word in the gri
   if (position[2]) {
     for (let i = 0; i < word.length; i++) {
       let temp = structuredClone(grid[y+i][x][2])
-      grid[y+i][x] = [word[i], true, temp, [true, i==0, i == word.length-1]]
+      grid[y+i][x] = [word[i], true, temp, [true, i==0, i == word.length-1], index]
     }
   } else {
     for (let i = 0; i < word.length; i++) {
       let temp = structuredClone(grid[y][x+i][3])
-      grid[y][x+i] = [word[i], true, [true, i==0, i == word.length-1], temp]
+      grid[y][x+i] = [word[i], true, [true, i==0, i == word.length-1], temp, index]
     }
   }
   return grid
@@ -1056,6 +1099,7 @@ function gendefinepositionsdefault() {
   let unsolvable = false
   let existinglengths = []
   for (let i = 0; i < gendata.cluewords.length; i++) {
+    gendata.problemindices.push([])
     interfacedata.errornotice = "Defining positions: " + str(round(100*i/gendata.cluewords.length) + "%")
     if (gendata.cluewords[i].length > gendata.gridsize && gendata.cluewords[i].length > gendata.gridsize) {
       unsolvable = true
@@ -1066,7 +1110,7 @@ function gendefinepositionsdefault() {
     gendata.totalcombos.push((gendata.gridsize+1-gendata.cluewords[i].length) * gendata.gridsize + (gendata.gridsize+1-gendata.cluewords[i].length) * gendata.gridsize)
     if (existinglengths.includes(gendata.cluewords[i].length)) {
       let combs = structuredClone(gendata.combforeach[existinglengths.findIndex(len => len == gendata.cluewords[i].length)])
-      shufflearray(combs)
+      //shufflearray(combs)
       gendata.combforeach.push(combs)
     } else {
       let combs = []
@@ -1080,7 +1124,7 @@ function gendefinepositionsdefault() {
           combs.push([b, a, true])
         }
       }
-      shufflearray(combs) // so the grid isnt so across + topleft heavy, remove bias
+      //shufflearray(combs) // so the grid isnt so across + topleft heavy, remove bias
       gendata.combforeach.push(combs)
     }
     existinglengths.push(gendata.cluewords[i].length)
@@ -1089,6 +1133,7 @@ function gendefinepositionsdefault() {
 function gendefinepositionscurgrid(curgrid) {
   let unsolvable = false
   for (let i = 0; i < gendata.cluewords.length; i++) {
+    gendata.problemindices.push([])
     interfacedata.errornotice = "Defining positions: " + str(round(100*i/gendata.cluewords.length) + "%")
     if (gendata.cluewords[i].length > gendata.gridsize && gendata.cluewords[i].length > gendata.gridsize) {
       unsolvable = true
@@ -1175,6 +1220,7 @@ function generatecrossword() {
       gendata.triedcombos = [] // which part of gendata.combforeach it has cycled through
       gendata.totalcombos = [] // max number per word of gendata.combforeach (its length)
       gendata.combforeach = [] // all combinations of word placements
+      gendata.problemindices = []
       gendata.pastgrids = [null]
       if (gendata.usecurgrid) {
         gendata.gridsize = int(gridobjectdata.width)
@@ -1207,7 +1253,7 @@ function generatecrossword() {
       grid = [] // temporary fit in grid
       let pushline = []
       for (let j = 0; j < gendata.gridsize; j++) {
-        pushline.push(["~", false, [false, false, false], [false, false, false]]) // content, assigned? [part of across, start, end] [part of down, start, end]
+        pushline.push(["~", false, [false, false, false], [false, false, false], -1]) // content, assigned? [part of across, start, end], [part of down, start, end], id
       }
       for (let i = 0; i < gendata.gridsize; i++) {
         grid.push(structuredClone(pushline))
@@ -1224,7 +1270,7 @@ function generatecrossword() {
       solvedvalues = []
       while (unsolved) {
         //console.log(gendata.triedcombos)
-        newfix = wordfitallposition(gendata.cluewords[gendata.focusindex], grid, gendata.combforeach[gendata.focusindex], gendata.triedcombos[gendata.focusindex], gendata.totalcombos[gendata.focusindex], gendata.focusindex)
+        newfix=wordfitallposition(gendata.cluewords[gendata.focusindex],grid,gendata.combforeach[gendata.focusindex],gendata.triedcombos[gendata.focusindex],gendata.totalcombos[gendata.focusindex],gendata.focusindex)
         let thiscomplexity = 0
         for (let i = 0; i < complexity.length; i++) (
           thiscomplexity += complexity[i] * gendata.triedcombos[i]
@@ -1275,12 +1321,22 @@ function generatecrossword() {
               }
               break
             } else {
-              gendata.triedcombos[ind-1] += 1
-              gendata.focusindex = ind-1
-              for (let j = ind; j < gendata.cluewords.length; j++) {
-                gendata.triedcombos[j] = 0
+              let problemset = ind-1
+              if (gendata.fastgen) {
+                for (let k = problemset; k >= 0; k--) {
+                  if (k in gendata.problemindices[ind]) {
+                    problemset = k
+                    break
+                  }
+                }
               }
-              grid = structuredClone(gendata.pastgrids[ind-1])
+              gendata.triedcombos[problemset] += 1
+              gendata.focusindex = problemset
+              for (let j = problemset+1; j < gendata.cluewords.length; j++) {
+                gendata.triedcombos[j] = 0
+                gendata.problemindices[j] = []
+              }
+              grid = structuredClone(gendata.pastgrids[problemset])
             }
           }
         }
@@ -1315,6 +1371,7 @@ function generatecrossword() {
     }
   }
   if (solvedgrids.length > 0) {
+    console.log(Date.now()/1000 - gendata.starttime)
     interfacedata.errornotice = "Grid found!"
     gendata.history[1] = false
     grid = structuredClone(solvedgrids[indexOfMax(solvedvalues)[0]])
@@ -1664,11 +1721,21 @@ function draw() {
 
 // taking inputs
 // keyboard
-window.addEventListener("keydown", function (event) {
+document.addEventListener("keydown", handleKey);
+function handleKey(event) {
   console.log(event.key)
   if (interfacedata.tabopen == 0) {
     if (event.defaultPrevented) {
       return; // do nothing if the event was already processed
+    }
+    if (event.key == "+") {
+      return
+      if (typeof unloadScript === "function") {
+        unloadScript();
+      }
+
+      // Remove event listener after executing
+      document.removeEventListener("keydown", handleKey);
     }
     if (keyIsDown(17)) {
       keypressed("ctrl " + event.key)
@@ -1677,7 +1744,7 @@ window.addEventListener("keydown", function (event) {
     }
     event.preventDefault();
   }
-}, true);
+}
 
 function keypressed(key) {
   switch(key) {
@@ -1711,6 +1778,15 @@ function keypressed(key) {
       break;
     case "ctrl y":
       unredo(1);
+      break;
+    case "ctrl x":
+      useclip(0);
+      break;
+    case "ctrl c":
+      useclip(1);
+      break;
+    case "ctrl v":
+      useclip(2);
       break;
     case "-":
       //drawexportpage(interfacedata.assignedclues, windowWidth-gridobjectdata.truewidth-1,gridobjectdata.trueheight)
@@ -1897,7 +1973,7 @@ function mousePressed() {
 }
 
 function mouseDragged() {
-  /*
+  ///*
   if (interfacedata.tabopen == 0) {
     if (mouseX <= gridobjectdata.truewidth-1 && mouseY <= gridobjectdata.trueheight-1) {
       console.log("Drag ", gridobjectdata.selectdrag)
@@ -1905,7 +1981,7 @@ function mouseDragged() {
       gridobjectdata.selectdrag[2] = Math.floor(gridobjectdata.width * mouseX / gridobjectdata.truewidth)
       gridobjectdata.selectdrag[3] = Math.floor(gridobjectdata.height * mouseY / gridobjectdata.trueheight)
     }
-  }*/
+  }//*/
   if (interfacedata.scrolledmousestart != false) {
     if (interfacedata.tabopen == 1) {
       interfacedata.scrolledclues += interfacedata.scrolledmousestart - mouseY
@@ -1932,7 +2008,7 @@ function mouseDragged() {
 
 function mouseReleased() {
   interfacedata.scrolledmousestart = false
-  /*
+  ///*
   if (gridobjectdata.selectdrag[4] == 2) {
     gridobjectdata.selectdrag[4] = 1
     if (gridobjectdata.selectdrag[2] < gridobjectdata.selectdrag[0]) {
@@ -1943,7 +2019,7 @@ function mouseReleased() {
     }
     console.log("Drag done ", gridobjectdata.selectdrag)
   }
-  */
+  //*/
 }
 
 function mouseWheel(event) {
@@ -1995,3 +2071,8 @@ function touchMoved() {
     }
   }
 }
+
+window.cleanupXwired = function () {
+  document.removeEventListener("keydown", handleKey);
+  console.log("xwired.js event listeners removed");
+};
