@@ -405,7 +405,7 @@ function draw() {
     textAlign(CENTER, CENTER)
     background("#FFFFFF")
     let bannerheight = windowHeight/20
-    if (Date.now() - progress.resultdelay < 1000) {
+    if (Date.now() - progress.resultdelay < 1000 || !progress.lossstate) {
         let usedwidth = Math.min((windowWidth-20)/(1+ui.showprev), (windowHeight-bannerheight)*8/5.5 -20)
         displaygrid((windowWidth - usedwidth)/2 + ui.showprev*windowWidth/4, bannerheight + 10, usedwidth)
         if (ui.showprev) {
