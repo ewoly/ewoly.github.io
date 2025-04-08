@@ -405,10 +405,12 @@ function draw() {
     textAlign(CENTER, CENTER)
     background("#FFFFFF")
     let bannerheight = windowHeight/20
-    let usedwidth = Math.min((windowWidth-20)/(1+ui.showprev), (windowHeight-bannerheight)*8/5.5 -20)
-    displaygrid((windowWidth - usedwidth)/2 + ui.showprev*windowWidth/4, bannerheight + 10, usedwidth)
-    if (ui.showprev) {
-        displayprevious(windowWidth/2 - usedwidth/0.99, bannerheight + 10, usedwidth/1.2)
+    if (Date.now() - progress.resultdelay < 1000) {
+        let usedwidth = Math.min((windowWidth-20)/(1+ui.showprev), (windowHeight-bannerheight)*8/5.5 -20)
+        displaygrid((windowWidth - usedwidth)/2 + ui.showprev*windowWidth/4, bannerheight + 10, usedwidth)
+        if (ui.showprev) {
+            displayprevious(windowWidth/2 - usedwidth/0.99, bannerheight + 10, usedwidth/1.2)
+        }
     }
     displaybanner(windowWidth,bannerheight,todayconnect[5][3])
 }
@@ -432,6 +434,24 @@ function mousePressed() {
                             console.log(structuredClone(progress.shuffleorder))
                         }
                     } else {
+                        ui.dragbutton.x = x
+                        ui.dragbutton.y = y
+                        ui.dragbutton.time = Date.now()
+                    }
+                }
+            }
+        }
+    }
+}
+
+function touchStarted() {
+    console.log("Click!",mouseX,mouseY)
+    for (let y = progress.foundcat.length; y < 4; y++) {
+        for (let x = 0; x < 4; x++) {
+            if (mouseX > (ui.buttonpos.x + ui.buttonpos.offset + ui.buttonpos.dx*x) && mouseX < (ui.buttonpos.x - ui.buttonpos.offset + ui.buttonpos.dx*(x+1))) {
+                if (mouseY > (ui.buttonpos.y + ui.buttonpos.offset + ui.buttonpos.dx*y/2) && mouseY < (ui.buttonpos.y - ui.buttonpos.offset + ui.buttonpos.dx*(y+1)/2)) {
+                    console.log(y,x)
+                    if (y < 4) {
                         ui.dragbutton.x = x
                         ui.dragbutton.y = y
                         ui.dragbutton.time = Date.now()
