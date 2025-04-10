@@ -24,6 +24,7 @@ var ui = {
 
 var animation = {
     loadt: 0,
+    lastpress: 0,
 }
 
 var meta = {
@@ -584,6 +585,8 @@ function mousePressed() {
 }
 
 function touchStarted() {
+    if (Date.now() - animation.lastpress < 50) {return}
+    animation.lastpress = Date.now()
     console.log("TClick!",mouseX,mouseY)
     for (let y = progress.foundcat.length; y < 4; y++) {
         for (let x = 0; x < 4; x++) {
