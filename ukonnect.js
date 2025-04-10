@@ -622,12 +622,34 @@ function touchStarted() {
 }
 
 function mouseDragged() {
-    ui.dragbutton.drag = true
+    if (ui.dragbutton.x != -1 && ui.dragbutton.y != -1) {
+        ui.dragbutton.drag = true
+    }
 }
 function touchMoved() {
-    ui.dragbutton.drag = true
+    if (ui.dragbutton.x != -1 && ui.dragbutton.y != -1) {
+        ui.dragbutton.drag = true
+    }
 }
-function touchEnded(){if (meta.debug) {meta.lognotice.push(["e"])}}
+function touchEnded(){
+    if (!progress.lossstate && Date.now() - animation.loadt > 100) {
+        for (let y = progress.foundcat.length; y < 4; y++) {
+            for (let x = 0; x < 4; x++) {
+                if (mouseX > (ui.buttonpos.x + ui.buttonpos.offset + ui.buttonpos.dx*x) && mouseX < (ui.buttonpos.x - ui.buttonpos.offset + ui.buttonpos.dx*(x+1))) {
+                    if (mouseY > (ui.buttonpos.y + ui.buttonpos.offset + ui.buttonpos.dx*y/2) && mouseY < (ui.buttonpos.y - ui.buttonpos.offset + ui.buttonpos.dx*(y+1)/2)) {
+                        if (ui.dragbutton.x != x && ui.dragbutton.y != y && ui.dragbutton.drag ) {
+                            let tempbutton = progress.shuffleorder[y*4+x-progress.foundcat.length*4]
+                            progress.shuffleorder[y*4+x-progress.foundcat.length*4] = progress.shuffleorder[ui.dragbutton.y*4+ui.dragbutton.x-progress.foundcat.length*4]
+                            progress.shuffleorder[ui.dragbutton.y*4+ui.dragbutton.x-progress.foundcat.length*4] = tempbutton
+                        }
+                        break
+                    }
+                }
+            }
+        }
+    }
+    
+    if (meta.debug) {meta.lognotice.push(["e"])}}
 
 function mouseReleased() {
     if (!progress.lossstate && Date.now() - animation.loadt > 100) {
