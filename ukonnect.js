@@ -17,7 +17,18 @@ var ui = {
     dragbutton: {x:-1, y:-1, time:0, drag:false},
     oneaway: 0,
     showprev: false,
-    catcolour: ["#FDFD40","#00FF00","#97B7F5","#FF11FF"]
+    catcolour: ["#FDFD40","#00FF00","#97B7F5","#FF11FF"],
+    screentype: 0,
+    metabuttons: {starttodays: {}},
+}
+
+var animation = {
+    loadt: 0,
+}
+
+var meta = {
+    fullukonnect: "",
+    daysadjust: 0,
 }
 
 function preload() { 
@@ -27,37 +38,42 @@ function preload() {
 }
 
 function organisedaily(textfile) {
+    let numlist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    todayconnect.push(["Group1", "thing", "thang", "theng", "thung"]);
+    todayconnect.push(["Group2", "shing", "shang", "sheng", "shungshung"]);
+    todayconnect.push(["Group3", "ing", "ang", "eng", "ung"]);
+    todayconnect.push(["Group4", "grin", "grij", "grik", "grip"]);
+    todayconnect.push(numlist);
+    meta.fullukonnect = textfile
     todayconnect = []
     let byline = textfile.split("\r\n")
     let todaydate = new Date()
-    for (let date = 0; date < byline.length; date += 6) {
+    let adjustmentbydate = -7 + 7*meta.daysadjust
+    for (let date = 0; date < byline.length; date += 7) {
         let splitdate = byline[date].split(".")
         for (let i = 0; i < 3; i++) {
             splitdate[i] = Number(splitdate[i])
         }
-        console.log(splitdate)
         if (todaydate.getUTCDate() >= splitdate[0]) {
             if (todaydate.getUTCMonth()+1 >= splitdate[1]) {
                 if (todaydate.getUTCFullYear() < splitdate[2]) {
-                    todaydate = date-6
+                    todaydate = date + adjustmentbydate
                     break
                 }
             } else if (todaydate.getUTCFullYear() <= splitdate[2]) {
-                todaydate = date-6
+                todaydate = date + adjustmentbydate
                 break
             }
         } else if (todaydate.getUTCMonth()+1 <= splitdate[1]) {
-            console.log(todaydate.getUTCFullYear(), splitdate[2])
             if (todaydate.getUTCFullYear() <= splitdate[2]) {
-                todaydate = date-6
+                todaydate = date + adjustmentbydate
                 break
             } 
         } else if (todaydate.getUTCFullYear() < splitdate[2]) {
-            todaydate = date-6
+            todaydate = date + adjustmentbydate
             break
         } 
     }
-    console.log(todaydate)
     for (let line = 0; line < 4; line++) {
         todayconnect.push(byline[todaydate+1+line].split("|"))
     }
@@ -67,30 +83,6 @@ function organisedaily(textfile) {
         splitdate[i] = Number(splitdate[i])
     }
     todayconnect.push(splitdate)
-    console.log(todayconnect)
-}
-
-let setupready = false
-async function setup() {
-    createCanvas(windowWidth, windowHeight);
-    rectMode(CORNER);
-    textFont(usedfont);
-
-    todayconnect.push(["Group1", "thing", "thang", "theng", "thung"]);
-    todayconnect.push(["Group2", "shing", "shang", "sheng", "shungshung"]);
-    todayconnect.push(["Group3", "ing", "ang", "eng", "ung"]);
-    todayconnect.push(["Group4", "grin", "grij", "grik", "grip"]);
-    todayconnect.push([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
-
-    try {
-        const response = await fetch("ukonnectdaily.txt");
-        const text = await response.text();
-        organisedaily(text);
-    } catch (err) {
-        console.error("Failed to fetch daily file:", err);
-    }
-
-    console.log(todayconnect[4]);
 
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 5; j++) {
@@ -106,20 +98,43 @@ async function setup() {
     }
 
     let sortedwordlist = [];
-    console.log(wordlist);
-    if (todayconnect[4].includes(",")) {
+    if (todayconnect[4].split(",").length == 16) {
         todayconnect[4] = todayconnect[4].split(",")
     } else {
-        todayconnect[4] = shuffleseed([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], todayconnect[4])
+        todayconnect[4] = todayconnect[4].split(",")
+        console.log(todayconnect[4])
+        if (todayconnect[4].length > 1) {
+            for (let i = 0; i < todayconnect[4].length-1; i++) {
+                numlist.splice(numlist.indexOf(Number(todayconnect[4][i])),1)
+            }
+        }
+        todayconnect[4].splice(-1,1)
+        todayconnect[4] = todayconnect[4].concat(shuffleseed(numlist, todayconnect[4][todayconnect[4].length-1]))
     }
-    console.log(todayconnect[4])
     for (let i = 0; i < 16; i++) {
         sortedwordlist.push(wordlist[Number(todayconnect[4][i]) - 1].toUpperCase());
     }
 
     todayconnect.push(structuredClone(sortedwordlist));
+    todayconnect.push(byline[todaydate+7].split("."))
     progress.shuffleorder = structuredClone(sortedwordlist);
+}
+
+let setupready = false
+async function setup() {
+    createCanvas(windowWidth, windowHeight);
+    rectMode(CORNER);
+    textFont(usedfont);
+
+    try {
+        const response = await fetch("ukonnectdaily.txt");
+        const text = await response.text();
+        organisedaily(text);
+    } catch (err) {
+        console.error("Failed to fetch daily file:", err);
+    }
     setupready = true
+    animation.loadt = Date.now()
     console.log("setup");
 }
 
@@ -164,6 +179,42 @@ function shuffleseed(array, seed) {
     }
     return array;
 }
+function adjustHue(r, g, b, hueShift) {
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+  
+    if (max === min) {
+        h = s = 0;
+    } else {
+        let d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    h = (h * 360 + hueShift) % 360;
+    if (h < 0) h += 360;
+  
+    let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    let p = 2 * l - q;
+    function hue2rgb(p, q, t) {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1/6) return p + (q - p) * 6 * t;
+        if (t < 1/2) return q;
+        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        return p;
+    }
+    let newr = Math.round(hue2rgb(p, q, h + 1/3) * 255);
+    let newg = Math.round(hue2rgb(p, q, h) * 255);
+    let newb = Math.round(hue2rgb(p, q, h - 1/3) * 255);
+    return (newr, newg, newb);
+}
+  
 
 function fadebox(message,size,time) {
     let opac = 255
@@ -178,6 +229,16 @@ function fadebox(message,size,time) {
     fill(0,0,0,opac)
     text(message, startx + widthallowed/2, starty + widthallowed/53)
 }
+function drawgradientrect(x, y, w, h, c1, c2) {
+    noStroke();
+    for (let i = 0; i < w; i++) {
+        let inter = map(i, 0, w, 0, 1);
+        let c = lerpColor(c1, c2, inter);
+        fill(c);
+        rect(x + i, y, 1, h);
+    }
+}
+
 function displaygrid(startx, starty, widthallowed) {
     for (let y = 0; y < progress.foundcat.length; y++) {
         stroke(0)
@@ -218,7 +279,7 @@ function displaygrid(startx, starty, widthallowed) {
         }
     }
     ui.buttonpos = {x: startx, y: starty, dx: widthallowed/4, offset: widthallowed/100}
-    for (let y = Math.max(progress.foundcat.length, progress.lossstate*4); y < 5; y++) {
+    for (let y = Math.max(progress.foundcat.length, (ui.screentype == 3)*4); y < 5; y++) {
         for (let x = 0; x < 4; x++) {
             stroke(207)
             strokeWeight(widthallowed/200)
@@ -340,10 +401,76 @@ function displaybanner(widthallowed, bannerheight, todaynumber) {
     fill("#000000")
     text("Create four groups of four that share a connection",widthallowed/2, bannerheight/2)
     textAlign(LEFT)
-    text("UKonnect: #" + todaynumber,widthallowed/100, bannerheight/2)
+    text("UKonnect: #" + todaynumber[3],widthallowed/100, bannerheight/2)
+    textAlign(RIGHT)
+    text(todaynumber[0] + "/" + todaynumber[1] + "/" + todaynumber[2],99*widthallowed/100, bannerheight/2)
     stroke(0)
     strokeWeight(bannerheight/20)
     line(0,bannerheight,widthallowed,bannerheight)
+}
+
+function viewgame() {
+    ui.screentype = 1
+    animation.loadt = Date.now()
+}
+function viewbacktogrid() {
+    ui.screentype = 3
+}
+
+function displayinterscreen(boxwidth) {
+    noStroke()
+    textSize(boxwidth/20)
+    fill("#000000")
+    textAlign(CENTER,CENTER)
+    if (ui.screentype == 0) {
+        text("Welcome to UKonnect!", windowWidth/2, windowHeight/2 - boxwidth/10)
+        textSize(boxwidth/30)
+        let h = 1
+        let button = ui.metabuttons.starttodays
+        button.x = windowWidth/2 - boxwidth/5
+        button.dx = 2*boxwidth/5
+        button.y = windowHeight/2 - 3*boxwidth/20 + h*boxwidth/5
+        button.dy = boxwidth/10
+        if (Date.now() - animation.loadt > 200) {
+            button.func = viewgame
+        }
+        //fill(adjustHue(255,20,20,Math.atan(Math.sin(Date.now() - animation.loadt)/10)))
+        fill("#FFFFFF")
+        stroke(0)
+        strokeWeight(boxwidth/200)
+        rect(button.x,button.y,button.dx,button.dy, boxwidth/30)
+        noStroke()
+        fill("#000000")
+        text("Play Most Recent", windowWidth/2, windowHeight/2 - boxwidth/10 + h*boxwidth/5)
+        h++
+    } else if (ui.screentype == 2) {
+        let solved = progress.previous.length - progress.foundcat.length < 4
+        if (solved) {
+            text("Congratulations!", windowWidth/2, windowHeight/2 - 2*boxwidth/10)
+        } else [
+            text("Better luck next time!", windowWidth/2, windowHeight/2 - 2*boxwidth/10)
+        ]
+        text("Skill: " + Number(result()), windowWidth/2, windowHeight/2 - boxwidth/10)
+        textSize(boxwidth/30)
+        let h = 1
+        let button = ui.metabuttons.starttodays
+        button.x = windowWidth/2 - boxwidth/5
+        button.dx = 2*boxwidth/5
+        button.y = windowHeight/2 - 3*boxwidth/20 + h*boxwidth/5
+        button.dy = boxwidth/10
+        if (Date.now() - animation.loadt > 200) {
+            button.func = viewbacktogrid
+        }
+        fill("#FFFFFF")
+        stroke(0)
+        strokeWeight(boxwidth/200)
+        rect(button.x,button.y,button.dx,button.dy, boxwidth/30)
+        noStroke()
+        fill("#000000")
+        text("Return to Grid", windowWidth/2, windowHeight/2 - boxwidth/10 + h*boxwidth/5)
+        text("Play the next UKonnect on " + todayconnect[7][0] + "/" + todayconnect[7][1], windowWidth/2, windowHeight/2 + 2*boxwidth/10)
+        h++
+    }
 }
 
 function submitcon() {
@@ -394,25 +521,37 @@ function result() {
     let skill = 0
     for (let i = 0; i < progress.foundcat.length; i++) {
         skill += progress.foundcat[i] * (4-i)
-        skill += 5
+        skill += 10
     }
-    skill += 15*(4+progress.foundcat.length-progress.previous.length)
+    skill += 10*(4+progress.foundcat.length-progress.previous.length)
+    for (let i = 0; i < progress.buzztext.length; i++) {
+        if (progress.buzztext[i] == "One Away") {
+            skill += 5
+        }
+    }
     console.log(skill)
+    return skill
 }
 
 function draw() {
     if (!setupready) {return};
+    //if (ui.screentype == 0) {ui.screentype = 1}
     textAlign(CENTER, CENTER)
     background("#FFFFFF")
     let bannerheight = windowHeight/20
-    if (Date.now() - progress.resultdelay < 1000 || !progress.lossstate) {
+    if (ui.screentype == 1 || ui.screentype == 3) {
         let usedwidth = Math.min((windowWidth-20)/(1+ui.showprev), (windowHeight-bannerheight)*8/5.5 -20)
         displaygrid((windowWidth - usedwidth)/2 + ui.showprev*windowWidth/4, bannerheight + 10, usedwidth)
         if (ui.showprev) {
             displayprevious(windowWidth/2 - usedwidth/0.99, bannerheight + 10, usedwidth/1.2)
         }
+    } else {
+        displayinterscreen(Math.min((windowWidth-20)/(1+ui.showprev), (windowHeight-bannerheight)*8/5.5 -20))
     }
-    displaybanner(windowWidth,bannerheight,todayconnect[5][3])
+    if (!(Date.now() - progress.resultdelay < 1000 || !progress.lossstate)) {
+        if (ui.screentype == 1) {ui.screentype = 2}
+    }
+    displaybanner(windowWidth,bannerheight,todayconnect[5])
 }
 
 function mousePressed() {
@@ -427,9 +566,9 @@ function mousePressed() {
                             progress.selection = []
                         } else if (x==2) {
                             shuffleArray(progress.shuffleorder)
-                        } else if (x==3) {
+                        } else if (x==3 && !progress.lossstate) {
                             submitcon()
-                        } else {
+                        } else if (x==0) {
                             ui.showprev = !ui.showprev
                             console.log(structuredClone(progress.shuffleorder))
                         }
@@ -445,7 +584,7 @@ function mousePressed() {
 }
 
 function touchStarted() {
-    console.log("Click!",mouseX,mouseY)
+    console.log("TClick!",mouseX,mouseY)
     for (let y = progress.foundcat.length; y < 4; y++) {
         for (let x = 0; x < 4; x++) {
             if (mouseX > (ui.buttonpos.x + ui.buttonpos.offset + ui.buttonpos.dx*x) && mouseX < (ui.buttonpos.x - ui.buttonpos.offset + ui.buttonpos.dx*(x+1))) {
@@ -470,29 +609,85 @@ function touchMoved() {
 }
 
 function mouseReleased() {
-    for (let y = progress.foundcat.length; y < 4; y++) {
-        for (let x = 0; x < 4; x++) {
-            if (mouseX > (ui.buttonpos.x + ui.buttonpos.offset + ui.buttonpos.dx*x) && mouseX < (ui.buttonpos.x - ui.buttonpos.offset + ui.buttonpos.dx*(x+1))) {
-                if (mouseY > (ui.buttonpos.y + ui.buttonpos.offset + ui.buttonpos.dx*y/2) && mouseY < (ui.buttonpos.y - ui.buttonpos.offset + ui.buttonpos.dx*(y+1)/2)) {
-                    if (ui.dragbutton.x == x && ui.dragbutton.y == y) {
-                        let index = progress.selection.indexOf(progress.shuffleorder[y*4+x-progress.foundcat.length*4].toUpperCase())
-                        if (index > -1) {
-                            progress.selection.splice(index,1)
-                        } else {
-                            if (progress.selection.length < 4) {
-                                progress.selection.push(progress.shuffleorder[y*4+x-progress.foundcat.length*4].toUpperCase())
+    if (!progress.lossstate && Date.now() - animation.loadt > 100) {
+        for (let y = progress.foundcat.length; y < 4; y++) {
+            for (let x = 0; x < 4; x++) {
+                if (mouseX > (ui.buttonpos.x + ui.buttonpos.offset + ui.buttonpos.dx*x) && mouseX < (ui.buttonpos.x - ui.buttonpos.offset + ui.buttonpos.dx*(x+1))) {
+                    if (mouseY > (ui.buttonpos.y + ui.buttonpos.offset + ui.buttonpos.dx*y/2) && mouseY < (ui.buttonpos.y - ui.buttonpos.offset + ui.buttonpos.dx*(y+1)/2)) {
+                        if (ui.dragbutton.x == x && ui.dragbutton.y == y) {
+                            let index = progress.selection.indexOf(progress.shuffleorder[y*4+x-progress.foundcat.length*4].toUpperCase())
+                            if (index > -1) {
+                                progress.selection.splice(index,1)
+                            } else {
+                                if (progress.selection.length < 4) {
+                                    progress.selection.push(progress.shuffleorder[y*4+x-progress.foundcat.length*4].toUpperCase())
+                                }
                             }
+                        } else if (ui.dragbutton.drag){
+                            let tempbutton = progress.shuffleorder[y*4+x-progress.foundcat.length*4]
+                            progress.shuffleorder[y*4+x-progress.foundcat.length*4] = progress.shuffleorder[ui.dragbutton.y*4+ui.dragbutton.x-progress.foundcat.length*4]
+                            progress.shuffleorder[ui.dragbutton.y*4+ui.dragbutton.x-progress.foundcat.length*4] = tempbutton
                         }
-                    } else if (ui.dragbutton.drag){
-                        let tempbutton = progress.shuffleorder[y*4+x-progress.foundcat.length*4]
-                        progress.shuffleorder[y*4+x-progress.foundcat.length*4] = progress.shuffleorder[ui.dragbutton.y*4+ui.dragbutton.x-progress.foundcat.length*4]
-                        progress.shuffleorder[ui.dragbutton.y*4+ui.dragbutton.x-progress.foundcat.length*4] = tempbutton
+                        break
                     }
-                    break
                 }
             }
         }
+        ui.dragbutton.drag = false
+        ui.dragbutton.x = -1
     }
-    ui.dragbutton.drag = false
-    ui.dragbutton.x = -1
+    for (let button in ui.metabuttons) {
+        if ("func" in ui.metabuttons[button]) {
+            if (mouseX > ui.metabuttons[button].x && mouseX < ui.metabuttons[button].x + ui.metabuttons[button].dx && mouseY > ui.metabuttons[button].y && mouseY < ui.metabuttons[button].y + ui.metabuttons[button].dy) {
+                ui.metabuttons[button].func()
+            }
+        }
+    }
+}
+
+document.addEventListener("keydown", handleKey);
+function handleKey(event) {
+    console.log(event.key)
+    if (event.defaultPrevented) {
+        return; // do nothing if the event was already processed
+    }
+    if (event.key == "+") {
+        return
+        if (typeof unloadScript === "function") {
+            unloadScript();
+        }
+
+        // Remove event listener after executing
+        document.removeEventListener("keydown", handleKey);
+    }
+    if (keyIsDown(17)) {
+        keypressed("ctrl " + event.key)
+    } else if (event.key != "Control") {
+        keypressed(event.key);
+    }
+    event.preventDefault();
+}
+function keypressed(key) {
+    switch(key) {
+        case "ctrl -":
+            gridobjectdata.selectposition[2] = !gridobjectdata.selectposition[2];
+            break;
+        case "ctrl =":
+            meta.daysadjust += 1
+            progress = {
+                selection: [],
+                shuffleorder: [],
+                foundcat: [],
+                previous: [],
+                prevfoundcol: [],
+                buzztext: [],
+                lossstate: false,
+                resultdelay: 0,
+            }
+            ui.screentype = 0
+            organisedaily(meta.fullukonnect)
+            break;
+        default:
+            break;
+    }
 }
