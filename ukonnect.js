@@ -569,7 +569,7 @@ function draw() {
 function mousePressed() {
     if (mouseX < 20 && mouseY < 20) {
         meta.debug = true
-        meta.lognotice.push("Enabled debug")
+        meta.lognotice.push("Enabled debug 0")
     }
     console.log("Click!",mouseX,mouseY)
     for (let y = progress.foundcat.length; y < 5; y++) {
@@ -602,10 +602,6 @@ function mousePressed() {
 
 function touchStarted() {
     //if (Date.now() - animation.lastpress < 50) {return}
-    if (mouseX < 20 && mouseY < 20) {
-        meta.debug = true
-        meta.lognotice.push("Enabled debug")
-    }
     animation.lastpress = Date.now()
     console.log("TClick!",mouseX,mouseY)
     for (let y = progress.foundcat.length; y < 4; y++) {
@@ -658,9 +654,10 @@ function mouseReleased() {
                 }
             }
         }
-        ui.dragbutton.drag = false
-        ui.dragbutton.x = -1
     }
+    ui.dragbutton.drag = false
+    ui.dragbutton.x = -1
+    ui.dragbutton.y = -1
     for (let button in ui.metabuttons) {
         if ("func" in ui.metabuttons[button]) {
             if (mouseX > ui.metabuttons[button].x && mouseX < ui.metabuttons[button].x + ui.metabuttons[button].dx && mouseY > ui.metabuttons[button].y && mouseY < ui.metabuttons[button].y + ui.metabuttons[button].dy) {
