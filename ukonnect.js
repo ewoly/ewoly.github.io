@@ -569,6 +569,7 @@ function draw() {
 function mousePressed() {
     if (mouseX < 20 && mouseY < 20) {
         meta.debug = true
+        meta.lognotice.push("Enabled debug")
     }
     console.log("Click!",mouseX,mouseY)
     for (let y = progress.foundcat.length; y < 5; y++) {
@@ -693,19 +694,21 @@ function keypressed(key) {
             gridobjectdata.selectposition[2] = !gridobjectdata.selectposition[2];
             break;
         case "ctrl =":
-            meta.daysadjust += 1
-            progress = {
-                selection: [],
-                shuffleorder: [],
-                foundcat: [],
-                previous: [],
-                prevfoundcol: [],
-                buzztext: [],
-                lossstate: false,
-                resultdelay: 0,
+            if (meta.debug) {
+                meta.daysadjust += 1
+                progress = {
+                    selection: [],
+                    shuffleorder: [],
+                    foundcat: [],
+                    previous: [],
+                    prevfoundcol: [],
+                    buzztext: [],
+                    lossstate: false,
+                    resultdelay: 0,
+                }
+                ui.screentype = 0
+                organisedaily(meta.fullukonnect)
             }
-            ui.screentype = 0
-            organisedaily(meta.fullukonnect)
             break;
         default:
             break;
