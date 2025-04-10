@@ -30,6 +30,8 @@ var animation = {
 var meta = {
     fullukonnect: "",
     daysadjust: 0,
+    lognotice: [],
+    debug: false,
 }
 
 function preload() { 
@@ -553,15 +555,28 @@ function draw() {
         if (ui.screentype == 1) {ui.screentype = 2}
     }
     displaybanner(windowWidth,bannerheight,todayconnect[5])
+    if (meta.debug) {
+        textSize(8)
+        noStroke()
+        fill("#000000")
+        textAlign(LEFT)
+        for (let i = 0; i < meta.lognotice.length; i++) {
+            text(meta.lognotice[i], 4, 4 + 10*i)
+        }
+    }
 }
 
 function mousePressed() {
+    if (mouseX < 20 && mouseY < 20) {
+        meta.debug = true
+    }
     console.log("Click!",mouseX,mouseY)
     for (let y = progress.foundcat.length; y < 5; y++) {
         for (let x = 0; x < 4; x++) {
             if (mouseX > (ui.buttonpos.x + ui.buttonpos.offset + ui.buttonpos.dx*x) && mouseX < (ui.buttonpos.x - ui.buttonpos.offset + ui.buttonpos.dx*(x+1))) {
                 if (mouseY > (ui.buttonpos.y + ui.buttonpos.offset + ui.buttonpos.dx*y/2) && mouseY < (ui.buttonpos.y - ui.buttonpos.offset + ui.buttonpos.dx*(y+1)/2)) {
                     console.log(y,x)
+                    if (meta.debug) {meta.lognotice.push([y,x,"m"])}
                     if (y == 4) {
                         if (x==1) {
                             progress.selection = []
@@ -585,7 +600,7 @@ function mousePressed() {
 }
 
 function touchStarted() {
-    if (Date.now() - animation.lastpress < 50) {return}
+    //if (Date.now() - animation.lastpress < 50) {return}
     animation.lastpress = Date.now()
     console.log("TClick!",mouseX,mouseY)
     for (let y = progress.foundcat.length; y < 4; y++) {
@@ -593,6 +608,7 @@ function touchStarted() {
             if (mouseX > (ui.buttonpos.x + ui.buttonpos.offset + ui.buttonpos.dx*x) && mouseX < (ui.buttonpos.x - ui.buttonpos.offset + ui.buttonpos.dx*(x+1))) {
                 if (mouseY > (ui.buttonpos.y + ui.buttonpos.offset + ui.buttonpos.dx*y/2) && mouseY < (ui.buttonpos.y - ui.buttonpos.offset + ui.buttonpos.dx*(y+1)/2)) {
                     console.log(y,x)
+                    if (meta.debug) {meta.lognotice.push([y,x,"t"])}
                     if (y < 4) {
                         ui.dragbutton.x = x
                         ui.dragbutton.y = y
@@ -618,6 +634,7 @@ function mouseReleased() {
                 if (mouseX > (ui.buttonpos.x + ui.buttonpos.offset + ui.buttonpos.dx*x) && mouseX < (ui.buttonpos.x - ui.buttonpos.offset + ui.buttonpos.dx*(x+1))) {
                     if (mouseY > (ui.buttonpos.y + ui.buttonpos.offset + ui.buttonpos.dx*y/2) && mouseY < (ui.buttonpos.y - ui.buttonpos.offset + ui.buttonpos.dx*(y+1)/2)) {
                         if (ui.dragbutton.x == x && ui.dragbutton.y == y) {
+                            if (meta.debug) {meta.lognotice.push([y,x,"r"])}
                             let index = progress.selection.indexOf(progress.shuffleorder[y*4+x-progress.foundcat.length*4].toUpperCase())
                             if (index > -1) {
                                 progress.selection.splice(index,1)
