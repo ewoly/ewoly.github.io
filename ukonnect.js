@@ -569,7 +569,7 @@ function draw() {
 function mousePressed() {
     if (mouseX < 20 && mouseY < 20) {
         meta.debug = true
-        meta.lognotice.push("Enabled debug 1")
+        meta.lognotice.push("Enabled debug 2")
     }
     console.log("Click!",mouseX,mouseY)
     for (let y = progress.foundcat.length; y < 5; y++) {
@@ -641,15 +641,17 @@ function touchEnded(){
                             let tempbutton = progress.shuffleorder[y*4+x-progress.foundcat.length*4]
                             progress.shuffleorder[y*4+x-progress.foundcat.length*4] = progress.shuffleorder[ui.dragbutton.y*4+ui.dragbutton.x-progress.foundcat.length*4]
                             progress.shuffleorder[ui.dragbutton.y*4+ui.dragbutton.x-progress.foundcat.length*4] = tempbutton
+                            break
                         }
-                        break
                     }
                 }
             }
         }
     }
-    
-    if (meta.debug) {meta.lognotice.push(["e"])}}
+    ui.dragbutton.drag = false
+    ui.dragbutton.x = -1
+    ui.dragbutton.y = -1
+    if (meta.debug) {meta.lognotice.push([mouseX,mouseY])}}
 
 function mouseReleased() {
     if (!progress.lossstate && Date.now() - animation.loadt > 100) {
