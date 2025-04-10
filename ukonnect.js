@@ -569,7 +569,7 @@ function draw() {
 function mousePressed() {
     if (mouseX < 20 && mouseY < 20) {
         meta.debug = true
-        meta.lognotice.push("Enabled debug 0")
+        meta.lognotice.push("Enabled debug 1")
     }
     console.log("Click!",mouseX,mouseY)
     for (let y = progress.foundcat.length; y < 5; y++) {
@@ -627,6 +627,7 @@ function mouseDragged() {
 function touchMoved() {
     ui.dragbutton.drag = true
 }
+function touchEnded(){if (meta.debug) {meta.lognotice.push(["e"])}}
 
 function mouseReleased() {
     if (!progress.lossstate && Date.now() - animation.loadt > 100) {
