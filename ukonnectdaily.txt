@@ -19,14 +19,14 @@ hand accessories|glove|henna|ring|watch
 what 'second' might mean|angle|assist|latter|time
 111
 
-21.04.2025.1
+23.04.2025.1
 original|first|head|leading|main
 parts of hair|crown|curl|frizz|knot
 bit of gardening|coppice|pot|trim|uproot
 ___ colour|complementary|primary|tri|water
 2,5,16,4,14,10,9,8,6,13,12,15,1,11,7,3
 
-23.04.2025.2
+24.04.2025.2
 darken in colour|bronze|burn|dim|tan
 in first|front|gold|pole|pioneer
 building support feature|beam|column|diamond|truss
@@ -40,28 +40,28 @@ in a disarray|mess|scene|shamble|state
 data types|character|float|integer|string
 15,3,7,2,11,80085
 
-28.05.2025.4
+28.04.2025.4
 yellow|amber|gold|lemon|saffron
 found on a cheeseboard|cheese|chutney|crackers|grapes
 arc-shaped things|banana|crescent|croissant|macaroni
 blood ___|clot|moon|orange|pressure
 2,12,5,7,4,8,14,3,99
 
-30.05.2025.5
+29.04.2025.5
 new|novel|original|revolutionary|unconventional
 handwritten text|inscription|manuscript|parchment|scroll
 artistic movement styles|abstract|modern|pop|surreal
 digital image editing|brightness|contrast|exposure|sharpness
 842
 
-02.06.2025.6
+30.04.2025.6
 cutting tools|cleaver|knife|saw|scissors
 found on a restaurant table|condiment|glass|menu|napkin
 chess attack terms|discovery|fork|pin|skewer
 tea ___|bag|cake|pot|spoon
 6543
 
-05.06.2025.7
+01.05.2025.7
 rob|plunder|purloin|swipe|take
 modify paper|fold|print|score|staple
 recipe measurements|cup|dash|pinch|teaspoon
