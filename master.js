@@ -132,6 +132,7 @@ function buttondisplay(boxwidth) {
 function draw() {
     background(220);
     //buttondisplay(Math.min(windowWidth, windowHeight))
+    textAlign(LEFT, TOP)
     text("Removed for now, sorry",0,0)
 }
 
@@ -158,3 +159,4 @@ function mousePressed() {
     }
 
 }
+
