@@ -131,7 +131,8 @@ function buttondisplay(boxwidth) {
 
 function draw() {
     background(220);
-    buttondisplay(Math.min(windowWidth, windowHeight))
+    //buttondisplay(Math.min(windowWidth, windowHeight))
+    text("Removed for now, sorry",0,0)
 }
 
 function startxwired() {
@@ -155,4 +156,5 @@ function mousePressed() {
             buttons[button].func()
         }
     }
+
 }
