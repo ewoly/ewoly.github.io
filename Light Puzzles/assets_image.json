@@ -1,0 +1,18 @@
+{
+    "ui": {
+        "restart": "reset_arrow.png",
+        "bg": "starry_bg.jpg",
+        "padlock": "padlock.png",
+        "x_button": "x_button.png",
+        "settings": "settings.png",
+        "back": "back_arrow.png",
+        "logo": "title_logo.png"
+    },
+    "cell": {
+        "squ": {
+            "pipe": {
+                "lr": "pipe_squ_lr.png"
+            }
+        }
+    }
+}
