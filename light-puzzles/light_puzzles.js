@@ -65,7 +65,7 @@ var anim = {
 }
 
 var aud = {
-  musvol: {n: 0},
+  musvol: {n: 30},
   sfxvol: {n: 30},
   muslib: {},
   musicplayer: {
