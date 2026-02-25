@@ -889,16 +889,19 @@ function drawtopinfo(xmove) {
     text("Completed!", windowWidth/2 + xmove, 7.2*ui.topbar/10)
     if (levels.total != levels.loadedlvl && ui.scene === "lvl" && ui.context === "fix") {
       ui.button.nextlevel = {x: windowWidth/2 + textWidth("Completed!#")/2 + xmove,
-        y: 6.5*ui.topbar/10,
-        dx: 2*ui.topbar/10,
-        dy: 2*ui.topbar/10,
+        y: 6.3*ui.topbar/10,
+        dx: 2.6*ui.topbar/10,
+        dy: 2.6*ui.topbar/10,
         type: HAND,
         func: nextlevel,
         avail: "main"
       }
       let shape = ui.button.nextlevel
-      rect(shape.x, shape.y + shape.dy/3, 2*shape.dx/3, shape.dy/3)
-      triangle(shape.x + 2*shape.dx/3, shape.y, shape.x + shape.dx, shape.y + shape.dy/2, shape.x + 2*shape.dx/3, shape.y + shape.dy)
+      function arrowdraw(x, y, dx, dy) {
+        rect(x, y + dy/3, 2*dx/3, dy/3)
+        triangle(x + 2*dx/3, y, x + dx, y + dy/2, x + 2*dx/3, y + dy)
+      }
+      arrowdraw(shape.x, shape.y, shape.dx, shape.dy)
     }
   }
   else {text(infotext, windowWidth/2 + xmove, 7.2*ui.topbar/10)}
@@ -1797,7 +1800,7 @@ function pointerPressed() {
       }
     }
     if (ui.scene == "slct" && mouseY > ui.greytopbar) {
-      if ((mouseX > ui.wind.rect.x && mouseX < ui.wind.rect.x + ui.wind.rect.dx) && (mouseY > ui.wind.rect.y - 3 && mouseY < ui.wind.rect.y + ui.wind.rect.dy + 3)) {
+      if ((mouseX > ui.wind.rect.x - ui.wind.rect.dx/3 && mouseX < ui.wind.rect.x + 4*ui.wind.rect.dx/3) && (mouseY > ui.wind.rect.y - 3 && mouseY < ui.wind.rect.y + ui.wind.rect.dy + 3)) {
         ui.wind.dragging = true
         ui.wind.start = [mouseY, ui.wind.num]
         console.log("Wind")
