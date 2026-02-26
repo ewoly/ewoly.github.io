@@ -890,8 +890,8 @@ function drawtopinfo(xmove) {
     if (levels.total != levels.loadedlvl && ui.scene === "lvl" && ui.context === "fix") {
       ui.button.nextlevel = {x: windowWidth/2 + textWidth("Completed!#")/2 + xmove,
         y: 6.3*ui.topbar/10,
-        dx: 2.6*ui.topbar/10,
-        dy: 2.6*ui.topbar/10,
+        dx: 2.4*ui.topbar/10,
+        dy: 2.4*ui.topbar/10,
         type: HAND,
         func: nextlevel,
         avail: "main"
