@@ -1399,8 +1399,7 @@ function dailypuzzleload(leader = "0000000") {
       break;
   }
   util.force = theme
-  console.log("theme", theme)
-  console.log(themetype)
+  console.log(theme)
   currentgrid = structuredClone(genlightpuzzle(16))
   convertfilldata()
   ui.scene = "lvl"
@@ -1427,12 +1426,12 @@ function genlightpuzzle(t) {
   }
   if (Object.hasOwn(util.force, "height")) {r.height = util.force.height}
   if (r.shape == "tri" && symmetry) {
-    if (util.force.symmetry == "rl" && r.width % 2 == 0) {r.width += 1}
+    if (util.force.symmetry == "lr" && r.width % 2 == 0) {r.width += 1}
     if (util.force.symmetry == "ud" && r.height % 2 == 1) {r.height += 1}
   }
   if (r.shape == "hex" && symmetry) {
-    if (util.force.symmetry == "ud") {util.force.symmetry = "rl"}
-    if (util.force.symmetry == "rl" && r.width % 2 == 0) {r.width += 1}
+    if (util.force.symmetry == "ud") {util.force.symmetry = "lr"}
+    if (util.force.symmetry == "lr" && r.width % 2 == 0) {r.width += 1}
   }
 
   r.depth = seedrandint(1,5)
