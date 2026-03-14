@@ -139,7 +139,7 @@ function preload() {
 }
 
 async function setup() {
-  createCanvas(windowWidth, windowHeight);
+  util.canv = createCanvas(windowWidth, windowHeight);
   pixelDensity(1)
   noSmooth()
   ui.mode = windowWidth > windowHeight
@@ -1949,8 +1949,9 @@ function toggleFullscreen() { // window stuffs
   fullscreen(!fs);
 }
 function windowResized() {
+  util.canv.remove()
   document.querySelector("canvas").remove()
-  createCanvas(windowWidth, windowHeight);
+  util.canv = createCanvas(windowWidth, windowHeight);
   ui.mode = windowWidth > windowHeight
   backgroundstars()
   closeconfirmation()
