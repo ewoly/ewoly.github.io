@@ -1275,14 +1275,14 @@ function mainmenu(xstart, ystart, xspace, yspace, orient) {
   //findpuzzledim(16*xspace*9/10/18, yspace/6, ystart+yspace/90, xstart)
   //currentgrid.xpos -= currentgrid.cellsize
   //drawgridtitle(currentgrid.xpos,currentgrid.ypos,currentgrid,currentgrid.cellsize)
-  let logoratio = lodgeimage(images.ui.logo.width, images.ui.logo.height, 9*xspace/10, yspace/3)
+  let logoratio = lodgeimage(images.ui.logo.width, images.ui.logo.height, 9*xspace/10, 3*yspace/8)
   let logopulse = 0.1*sin(anim.val.titlesplode/1000 * PI) +1
   //tint(80-600*(logopulse-1),255)
   logoratio = logoratio*logopulse
   //image(images.ui.logo, xstart + xspace/2 - images.ui.logo.width*logoratio/2, ystart - images.ui.logo.height*(logopulse-1)/4, images.ui.logo.width*logoratio, images.ui.logo.height*logoratio)
   noTint()
   logoratio = logoratio/logopulse
-  image(images.ui.logo, xstart + xspace/2 - images.ui.logo.width*logoratio/2, ystart, images.ui.logo.width*logoratio, images.ui.logo.height*logoratio)
+  image(images.ui.logo, xstart + xspace/2 - images.ui.logo.width*logoratio/2, ystart + 3*yspace/16 - images.ui.logo.height*logoratio/2, images.ui.logo.width*logoratio, images.ui.logo.height*logoratio)
 
   ystart += yspace/3
   yspace = 2*yspace/3
@@ -1399,6 +1399,7 @@ function dailypuzzleload(leader = "0000000") {
       break;
   }
   util.force = theme
+  console.log(theme)
   currentgrid = structuredClone(genlightpuzzle(16))
   convertfilldata()
   ui.scene = "lvl"
