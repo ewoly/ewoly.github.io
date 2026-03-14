@@ -1,3 +1,18 @@
+// DO NOT LOOK HERE
+// EVERYTHING HERE IS DISABLED AND IS OLD CODE
+// the actual stuff is stored somewhere else
+
+
+
+
+
+
+
+
+
+
+
+
 let script;
 let currentFile = null;
 
