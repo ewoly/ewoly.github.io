@@ -1949,7 +1949,8 @@ function toggleFullscreen() { // window stuffs
   fullscreen(!fs);
 }
 function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
+  document.querySelector("canvas").remove()
+  createCanvas(windowWidth, windowHeight);
   ui.mode = windowWidth > windowHeight
   backgroundstars()
   closeconfirmation()
