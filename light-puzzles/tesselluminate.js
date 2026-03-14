@@ -115,7 +115,7 @@ function timechecker(text) {
 }
 
 function preload() { 
-  document.title = "Light Puzzles"
+  document.title = "Tesselluminate"
   usedfont = loadFont("Roboto-Medium.ttf") // WOO
   secondfont = loadFont("Unispace Bd.otf")
   document.addEventListener("keydown", window.scriptKeyListener);
