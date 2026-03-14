@@ -1957,3 +1957,9 @@ function windowResized() {
   closesettings()
   if (ui.wind.num < ui.wind.max) {ui.wind.num = ui.wind.max}
 }
+
+document.addEventListener("touchmove", function(e){
+  if(e.touches.length > 1){
+    e.preventDefault()
+  }
+}, {passive:false})
