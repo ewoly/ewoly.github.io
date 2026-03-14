@@ -1373,7 +1373,7 @@ function dailypuzzleload(leader = "0000000") {
   const dateseed = String(util.today.d).padStart(2, '0') + String(util.today.m).padStart(2, '0') + util.today.y
   util.seed = Number(dateseed + leader)
   let theme = {}
-  themetype = seedrandint(0,2)
+  themetype = seedrandint(0,10)
   console.log(themetype)
   switch (themetype) {
     case 0:
@@ -1383,23 +1383,20 @@ function dailypuzzleload(leader = "0000000") {
     case 1:
     case 2:
       theme.depth = 2
-      break;
     case 3:
     case 4:
       theme.depth = 4;
-      break;
     case 5:
       theme.width = 4;
       theme.height = 4;
-      break;
     case 6:
     case 7:
       theme.symmetry = "lr";
       break;
     case 8:
+    case 9:
       theme.symmetry = "ud";
       break;
-    
   }
   util.force = theme
   currentgrid = structuredClone(genlightpuzzle(16))
@@ -1426,11 +1423,15 @@ function genlightpuzzle(t) {
   } else {
     r.height = r.width
   }
+  if (Object.hasOwn(util.force, "height")) {r.height = util.force.height}
   if (r.shape == "tri" && symmetry) {
     if (util.force.symmetry == "rl" && r.width % 2 == 0) {r.width += 1}
     if (util.force.symmetry == "ud" && r.height % 2 == 1) {r.height += 1}
   }
-  if (Object.hasOwn(util.force, "height")) {r.height = util.force.height}
+  if (r.shape == "hex" && symmetry) {
+    if (util.force.symmetry == "ud") {util.force.symmetry = "rl"}
+    if (util.force.symmetry == "rl" && r.width % 2 == 0) {r.width += 1}
+  }
 
   r.depth = seedrandint(1,5)
   if (Object.hasOwn(util.force, "depth")) {r.depth = util.force.depth}
