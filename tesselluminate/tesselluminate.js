@@ -1373,7 +1373,7 @@ function dailypuzzleload(leader = "0000000") {
   const dateseed = String(util.today.d).padStart(2, '0') + String(util.today.m).padStart(2, '0') + util.today.y
   util.seed = Number(dateseed + leader)
   let theme = {}
-  themetype = seedrandint(0,10)
+  let themetype = seedrandint(0,10)
   console.log(themetype)
   switch (themetype) {
     case 0:
@@ -1399,7 +1399,8 @@ function dailypuzzleload(leader = "0000000") {
       break;
   }
   util.force = theme
-  console.log(theme)
+  console.log("theme", theme)
+  console.log(themetype)
   currentgrid = structuredClone(genlightpuzzle(16))
   convertfilldata()
   ui.scene = "lvl"
