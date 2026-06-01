@@ -1401,7 +1401,7 @@ function dailypuzzleload(leader = "0000000") {
   }
   util.force = theme
   console.log(theme)
-  currentgrid = structuredClone(genlightpuzzle(16))
+  currentgrid = structuredClone(genlightpuzzle(18))
   convertfilldata()
   ui.scene = "lvl"
   ui.context = "dal"
@@ -1520,9 +1520,9 @@ function genlightpuzzle(t) {
     }
     if (!symmetry) {adjustcells(r)}
     console.log(r.prefill)
-    sh = r.shape=="tri"?1:r.shape=="squ"?2:4
+    sh = r.shape=="tri"?1:r.shape=="squ"?2:3
     sz = (r.width*r.height)*0.2
-    dp = r.depth*2
+    dp = Math.sqrt(r.depth)*2.5
     cs = 0
     g = 0
     tot = r.width*r.height
@@ -1602,7 +1602,7 @@ function genlightpuzzle(t) {
   if (cl < r.height * r.width * r.depth/4) {return genlightpuzzle(t)}
   if (!(Object.hasOwn(util.force, "prefill"))) {
     r.diff = sh+sz+dp+cs+Math.log(cl)
-    if (Math.abs(r.diff-t)>1) return genlightpuzzle(t)
+    if (Math.abs(r.diff-t)>1.5) return genlightpuzzle(t)
   }
   
   for (let y = 0; y < r.height; y++) {
