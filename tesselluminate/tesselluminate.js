@@ -1477,7 +1477,7 @@ function genlightpuzzle(t) {
           }
         }
       for (let x = 0; x < r.width; x++) {
-        let c = seedrandint(0,9)
+        let c = seedrandint(0,18)
         if (symmetry) {
           if (util.force.symmetry == "lr") {
             if (x >= r.width/2) {
@@ -1487,9 +1487,9 @@ function genlightpuzzle(t) {
           }
         }
         let subtype = ["n", "v", "h", "+"][seedrandint(0,3)]
-        if (c < 5) line.push({type: "normal", subtype: "n"})
-        else if (c < 8) line.push({type: "glass", subtype: "n"})
-        else if (c < 9) line.push({type: "button", subtype: subtype})
+        if (c < 11) line.push({type: "normal", subtype: "n"})
+        else if (c < 16) line.push({type: "glass", subtype: "n"})
+        else if (c < 18) line.push({type: "button", subtype: subtype})
         else line.push({type: "grey", subtype: "n"})
       }
       r.prefill.push(line)
