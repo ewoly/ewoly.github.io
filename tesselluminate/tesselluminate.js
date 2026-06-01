@@ -886,8 +886,9 @@ function drawtopinfo(xmove) {
   fill(colscheme.border)
   textAlign(CENTER, CENTER)
   if (currentgrid.win) {
-    text("Completed!", windowWidth/2 + xmove, 7.2*ui.topbar/10)
-    if (levels.total != levels.loadedlvl && ui.scene === "lvl" && ui.context === "fix") {
+    text("Completed!", windowWidth/2 + xmove, 7.2*ui.topbar/10) // replace infotext
+    if (levels.total != levels.loadedlvl && ui.scene === "lvl" && ui.context === "fix") { 
+      // do not display next level if this is the last level
       ui.button.nextlevel = {x: windowWidth/2 + textWidth("Completed!#")/2 + xmove,
         y: 6.3*ui.topbar/10,
         dx: 2.4*ui.topbar/10,
@@ -897,7 +898,7 @@ function drawtopinfo(xmove) {
         avail: "main"
       }
       let shape = ui.button.nextlevel
-      function arrowdraw(x, y, dx, dy) {
+      function arrowdraw(x, y, dx, dy) { // next level button draw ->
         rect(x, y + dy/3, 2*dx/3, dy/3)
         triangle(x + 2*dx/3, y, x + dx, y + dy/2, x + 2*dx/3, y + dy)
       }
@@ -1170,7 +1171,7 @@ function draw() { // here
   textAlign(LEFT, TOP)
   //rect(0, windowHeight/3, windowWidth, windowHeight/3)
   fill("#000")
-  //drawadvancedtext("this is a test of the text wrapping system and should not affet you in any way, please just ignore", windowWidth/2, windowHeight/2, windowWidth, windowHeight/3, CENTER, CENTER, 5)
+  //drawadvancedtext("this is a test of the text wrapping system and should not affect you in any way, please just ignore", windowWidth/2, windowHeight/2, windowWidth, windowHeight/3, CENTER, CENTER, 5)
   //fill("#e21cb4")
   //rect(0,0,50,ui.topbar)
   //rect(0,0,100,ui.greytopbar)
@@ -1597,7 +1598,8 @@ function genlightpuzzle(t) {
       if (r.prefill[y][x].toclick>0) {cl += r.prefill[y][x].toclick}
     }
   }
-  if (cl < r.height*r.width*r.depth/4) {return genlightpuzzle(t)}
+  // replace with more efficient system of predefined click pool
+  if (cl < r.height * r.width * r.depth/4) {return genlightpuzzle(t)}
   if (!(Object.hasOwn(util.force, "prefill"))) {
     r.diff = sh+sz+dp+cs+Math.log(cl)
     if (Math.abs(r.diff-t)>1) return genlightpuzzle(t)
