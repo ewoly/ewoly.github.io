@@ -261,6 +261,7 @@ function findaffect(x, y, shape, w, h, type = "n") {
       }
       break;
   }
+
   return affects
 }
 
@@ -818,7 +819,7 @@ function returnback() {
   if (ui.scene === "slct") {ui.scene = "title"; openmainmenu()}
   if (ui.scene === "lvl") {
     if (ui.context === "fix") {ui.scene = "slct"; levels.loadedlvl = 0; delete ui.button.nextlevel}
-    else if (ui.context === "dal") {ui.scene = "title"; openmainmenu()}
+    else if (ui.context === "dal" || ui.context === "test") {ui.scene = "title"; openmainmenu()}
   }
   anim.val.menuglide = 0
 }
@@ -1380,6 +1381,7 @@ function dailypuzzleload(leader = "0000000") {
     case 0:
       theme.width = 3;
       theme.height = 3;
+      theme.shape = "squ";
       break;
     case 1:
     case 2:
@@ -1392,16 +1394,31 @@ function dailypuzzleload(leader = "0000000") {
       theme.height = 4;
     case 6:
     case 7:
-      theme.symmetry = "lr";
+      theme.shape = "squ";
       break;
     case 8:
+      theme.width = 3;
+      theme.shape = "squ";
+      break;
     case 9:
+      
+  }
+  let sym = seedrandint(0, 6)
+  switch (sym) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+      theme.symmetry = "lr";
+      break;
+    case 4:
+    case 5:
       theme.symmetry = "ud";
       break;
   }
   util.force = theme
   console.log(theme)
-  currentgrid = structuredClone(genlightpuzzle(18))
+  currentgrid = structuredClone(newgenlightpuzzle(12))
   convertfilldata()
   ui.scene = "lvl"
   ui.context = "dal"
@@ -1409,6 +1426,527 @@ function dailypuzzleload(leader = "0000000") {
   delete ui.button.daily
   anim.val.menuglide = 999
 }
+
+function testpuzzleload(force) {
+  util.force = force
+  currentgrid = structuredClone(newgenlightpuzzle())
+  console.log(structuredClone(currentgrid))
+  convertfilldata()
+  ui.scene = "lvl"
+  ui.context = "test"
+  delete ui.button.playmain
+  delete ui.button.daily
+}
+
+function newgenlightpuzzle(t) {
+  console.log(util.seed)
+  let symmetry = false
+  if (Object.hasOwn(util.force, "symmetry")) {symmetry = true;}
+  let neutral = false
+  if (Object.hasOwn(util.force, "buttonneutral")) {neutral = true;}
+  let diff = 11
+  if (Object.hasOwn(util.force, "diff")) {diff = util.force.diff}
+  let r = {shape: seedrandint(0,2)}
+  r.shape = ["tri","squ","hex"][r.shape]
+  if (Object.hasOwn(util.force, "shape")) {r.shape = util.force.shape}
+  let cdiff = ["tri","squ","hex"].indexOf(r.shape)*2
+  r.width = weightrand(3,7, diff/4, 2) // size
+  if (Object.hasOwn(util.force, "width")) {r.width = util.force.width}
+  if (seedrandint(0,2)) {
+    r.height = seedrandint(-1, 1) + r.width
+    if (r.height < 3 || r.height > 7) {r.height = r.width}
+  } else {
+    r.height = r.width
+  }
+  if (Object.hasOwn(util.force, "height")) {r.height = util.force.height}
+  if (r.shape == "tri" && symmetry) {
+    if (util.force.symmetry == "lr" && r.width % 2 == 0) {r.width += 1}
+    if (util.force.symmetry == "ud" && r.height % 2 == 1) {r.height += 1}
+  }
+  if (r.shape == "hex" && symmetry) {
+    if (util.force.symmetry == "ud") {util.force.symmetry = "lr"}
+    if (util.force.symmetry == "lr" && r.width % 2 == 0) {r.width += 1}
+  }
+  cdiff += r.width + r.height
+  r.depth = weightrand(1,5,diff-cdiff, 2)
+
+  r.diff = cdiff + floor(sqrt(r.depth)*100)/100
+  if (Object.hasOwn(util.force, "depth")) {r.depth = util.force.depth}
+
+  let rigor = 0
+  if (r.width*r.height < 30) {rigor = 2}
+  else if (r.width*r.height < 80) {rigor = 1}
+  if (Object.hasOwn(util.force, "rigor")) {rigor = util.force.rigor}
+
+  r.target = seedrandint(0, r.depth)
+
+  if (Object.hasOwn(util.force, "prefill")) {
+    r.prefill = []
+    let convert = {
+      "b": "button",
+      "#": "normal",
+      ".": "grey",
+      "g": "glass",
+    }
+    r.width = util.force.prefill[0].length
+    r.height = util.force.prefill.length
+    for (let y = 0; y < r.height; y++) {
+      let line = []
+      for (let x = 0; x < r.width; x++) {
+        let val = util.force.prefill[y][x]
+        let type = val[0]
+        let subtype = "n"
+        if (val.length > 1) {subtype = val[1]}
+        let pushstat = {type: convert[type], subtype: subtype}
+        line.push(pushstat)
+      }
+      r.prefill.push(line)
+    }
+  } else { // create normal grid
+    r.prefill = []
+    for (let y = 0; y < r.height; y++) {
+      let line = []
+      for (let x = 0; x < r.width; x++) {
+        line.push({type: "normal", subtype: "n"})
+      }
+      r.prefill.push(line)
+    }
+    /*
+    ok the next part is changing a cell each time, with symmetry, 
+    and checking click affects to locate difficulty
+    lets find click affects
+    */
+    function fillfindaffect(x, y, shape, width, height, type, subtype) {
+      if (type === "glass" || type === "grey") {return []}
+      let whataffect = findaffect(x, y, shape, width, height, subtype)
+      whataffect.push([x,y])
+      let finalaffect = []
+      for (let i in whataffect) {
+        let thisaffect = whataffect[i]
+        if (thisaffect[0] === x && thisaffect[1] === y && type === "button") {continue}
+        if (hasList(finalaffect, thisaffect)) {continue}
+        finalaffect.push(thisaffect)
+      }
+      return finalaffect
+    }
+    function createaffectsgrid(grid, shape, width, height) {
+      affectgrid = []
+      for (let y = 0; y < height; y++) {
+        let line = []
+        for (let x = 0; x < width; x++) {
+          if (grid[y][x].type !== "button") {grid[y][x].subtype = "n"}
+          rawaffect = fillfindaffect(x, y, shape, width, height, grid[y][x].type, grid[y][x].subtype)
+          //console.log("Raw affect for " + str([x,y]) + " is " + str(rawaffect))
+          finalaffect = []
+          for (let affectid in rawaffect) {
+            let affect = rawaffect[affectid]
+            let affecttype = grid[affect[1]][affect[0]].type
+            if (!(affecttype === "grey" || affecttype === "button")) {
+              finalaffect.push(affect)
+            }
+          }
+          line.push(finalaffect)
+        }
+        affectgrid.push(line)
+      }
+      return affectgrid
+    }
+    function createaffectedbygrid(width, height, affects) {
+      affectedbygrid = []
+      for (let y = 0; y < height; y++) {
+        let line = []
+        for (let x = 0; x < width; x++) {
+          line.push([])
+        }
+        affectedbygrid.push(line)
+      }
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let affectlist = affects[y][x]
+          for (let i in affectlist) {
+            affectedbygrid[affectlist[i][1]][affectlist[i][0]].push([x,y])
+          }
+        }
+      }
+      return affectedbygrid
+    }
+    function testconnected(width, height, grid, affects, affectby) {
+      let consider = []
+      let used = []
+      let incaselog = []
+      let firstfind = -1
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          if (affects[y][x].length > 0) {
+            firstfind = y*width + x
+            break
+          }
+        }
+        if (firstfind !== -1) {break}
+      }
+      consider.push(int(firstfind))
+      incaselog.push(firstfind)
+      while (consider.length > 0) {
+        let read = consider[0]
+        incaselog.push("Reading " + str(read) + ", " + str([read % width, floor(read / width)]) + " which affects " + str(affects[floor(read / width)][read % width]) + " and is affected by " + str(affectby[floor(read / width)][read % width]))
+        for (let i in affects[floor(read / width)][read % width]) {
+          let thisaffect = affects[floor(read / width)][read % width][i]
+          let value = int(thisaffect[1]*width + thisaffect[0])
+          //incaselog.push(value)
+          incaselog.push("Affects " + value + " of " + str(thisaffect))
+          if (used.includes(value) || consider.includes(value)) {continue}
+          else {consider.push(value)}
+        }
+        //incaselog.push("Affectby")
+        for (let i in affectby[floor(read / width)][read % width]) {
+          let thisaffect = affectby[floor(read / width)][read % width][i]
+          let value = thisaffect[1]*width + thisaffect[0]
+          incaselog.push("Affect by " + value + " of " + str(thisaffect))
+          if (used.includes(value) || consider.includes(value)) {continue}
+          else {consider.push(value)}
+        }
+        used.push(read)
+        consider.splice(0, 1)
+        incaselog.push(structuredClone(used), structuredClone(consider))
+      }
+      incaselog.push("Used: " + str(used))
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          if (grid[y][x].type === "normal" || grid[y][x].type === "glass") {
+            incaselog.push("Checking " + str([x,y]))
+            if (!(y*width + x in used)) {
+              //console.log(structuredClone(grid))
+              //for (let i in incaselog) {console.log(incaselog[i])}
+              return false
+            }
+          }
+        }
+      }
+      return true
+    }
+    function solveclicklayer(width, height, grid, affects, affectby) { 
+      // find which tiles are possible to change on their own, and so can be ignored for the purpose of solving the puzzle
+      let ignore = []
+      //console.log(structuredClone(affects), structuredClone(affectby))
+      let layer = 0
+      let foundone = true
+      function inprevious(layer, coords, ignore) {
+        for (let i = 0; i <= layer; i++) {
+          if (hasList(ignore[i], coords)) {return true}
+        }
+        return false
+      }
+      while (foundone) {
+        foundone = false
+        ignore.push([])
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            if (grid[y][x].type === "grey" && layer === 0) {ignore[layer].push([x,y]); continue}
+            if (affects[y][x].length === 1) {
+              //if (inprevious(layer, affects[y][x][0], ignore)) {continue}
+              if (inprevious(layer, [x,y], ignore)) {continue}
+              //console.log("Found " + str([x,y]) + " affects " + str(affects[y][x][0]) + " and is the only tile it affects")
+              //ignore[layer].push(affects[y][x][0])
+              ignore[layer].push([x,y])
+              foundone = true
+            }
+            if (affectby[y][x].length === 1) {
+              if (inprevious(layer, affectby[y][x][0], ignore)) {continue}
+              //console.log("Found " + str([x,y]) + " is affected by " + str(affectby[y][x][0]) + " and is the only tile affecting it")
+              ignore[layer].push(affectby[y][x][0])
+              foundone = true
+            }
+          }
+        }
+        if (foundone) {
+          layer += 1
+          for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+              for (let i in ignore[layer-1]) {
+                if (hasList(affects[y][x], ignore[layer-1][i])) {
+                  //console.log("Removing " + str(ignore[layer-1][i]) + " from affects of " + str([x,y]))
+                  affects[y][x].splice(affects[y][x].findIndex(x => x[0] === ignore[layer-1][i][0] && x[1] === ignore[layer-1][i][1]), 1)
+                }
+                if (hasList(affectby[y][x], ignore[layer-1][i])) {
+                  //console.log("Removing " + str(ignore[layer-1][i]) + " from affectby of " + str([x,y]))
+                  affectby[y][x].splice(affectby[y][x].findIndex(x => x[0] === ignore[layer-1][i][0] && x[1] === ignore[layer-1][i][1]), 1)
+                }
+              }
+            }
+          }
+        }
+        if (layer > 10) {console.log("Error: Too Many Layers"); break}
+      }
+      ignore.splice(ignore.length-1, 1)
+      //console.log(affects, affectby)
+      return ignore
+    }
+
+    function findclickable(width, height, grid) {
+      let clickable = 0
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          if (grid[y][x].type === "button" || grid[y][x].type === "normal") {clickable += 1}
+        }
+      }
+      return clickable
+    }
+    // its [y][x] because idc
+    // okay time for repeated changing
+    let changespace = [r.width, r.height]
+    if (symmetry) {
+      if (util.force.symmetry === "lr") {changespace[0] = Math.ceil(r.width/2)}
+      else if (util.force.symmetry === "ud") {changespace[1] = Math.ceil(r.height/2)}
+    }
+    let changeattempts = changespace[0] * changespace[1] * 2
+    function choosetile(grid, width, height, chances) {
+      let existingcount = {
+        "normal" : 0,
+        "glass" : 0,
+        "button" : 0,
+        "grey" : 1
+      }
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          existingcount[grid[y][x].type] += 1
+        }
+      }
+      let weights = []
+      let total = 0
+
+      for (let tile in chances) {
+        let weight = chances[tile] / sqrt(existingcount[tile] + 1)
+        weights.push([tile, weight])
+        total += weight
+      }
+      let rand = seedrandint(0, floor(total*1000))/1000
+      //console.log(rand, total, weights)
+      for (let i = 0; i < weights.length; i++) {
+        rand -= weights[i][1]
+        if (rand <= 0) {
+          return weights[i][0]
+        }
+      }
+    }
+    let chances = {
+      "normal" : 16,
+      "glass" : 8,
+      "button" : 4,
+      "grey" : 1
+    }
+    if (Object.hasOwn(util.force, "chances")) {chances = util.force.chances}
+    while (changeattempts > 0) {
+      let failtype = ""
+      let chosen = [seedrandint(0, changespace[0]-1), seedrandint(0, changespace[1]-1)]
+      let chosetype = choosetile(r.prefill, r.width, r.height, chances)
+      if (!["normal", "glass", "button", "grey"].includes(chosetype)) {console.log("Chosen " + str(chosen) + " to be " + chosetype)}
+      let prev = structuredClone(r.prefill[chosen[1]][chosen[0]])
+      r.prefill[chosen[1]][chosen[0]].type = chosetype
+      if (chosetype === "button") {r.prefill[chosen[1]][chosen[0]].subtype = neutral ? "n" : ["n", "v", "h", "+"][seedrandint(0,3)]}
+      if (prev.type === chosetype) {if (chosetype !== "button" || prev.subtype === r.prefill[chosen[1]][chosen[0]].subtype) {changeattempts -= 1; continue}}
+      if (symmetry) {
+        if (util.force.symmetry === "lr") {r.prefill[chosen[1]][r.width - chosen[0] - 1].type = chosetype
+          if (chosetype === "button") {r.prefill[chosen[1]][r.width - chosen[0] - 1].subtype = r.prefill[chosen[1]][chosen[0]].subtype}
+        }
+        else if (util.force.symmetry === "ud") {r.prefill[r.height - chosen[1] - 1][chosen[0]].type = chosetype
+          if (chosetype === "button") {r.prefill[r.height - chosen[1] - 1][chosen[0]].subtype = r.prefill[chosen[1]][chosen[0]].subtype}
+        }
+      }
+      let affectgrid = createaffectsgrid(r.prefill, r.shape, r.width, r.height)
+      let affectedbygrid = createaffectedbygrid(r.width, r.height, affectgrid)
+
+      let goodgrid = true
+      let forcedmoves = 0
+      for (let y = 0; y < r.height; y++) {
+        for (let x = 0; x < r.width; x++) {
+          let thistile = r.prefill[y][x]
+          if (thistile.type === "button" || thistile.type === "normal") {
+            if (affectgrid[y][x].length === 0) {goodgrid = false; failtype = "Error: Must Affect Something at " + str([y, x])} // each clickable tile must affect SOME thing
+          }
+          if (thistile.type === "glass" || thistile.type === "normal") {
+            if (affectedbygrid[y][x].length === 0) {goodgrid = false; failtype = "Error: Must Be Affected at " + str([y, x])} // each tile that can be affected must have something affect it
+            if (affectedbygrid[y][x].length === 1) {forcedmoves += 1} // lets not have too many forced click tiles
+            //console.log(x, y, affectedbygrid[y][x])
+          }
+        }
+      }
+      if (forcedmoves > Math.sqrt(r.width*r.height)) {goodgrid = false; failtype = "Error: Too Many Forced Clicks"}
+      if (rigor > 0) {
+        if (!testconnected(r.width, r.height, r.prefill, affectgrid, affectedbygrid)) {goodgrid = false; failtype = "Error: Disconnected"} // must be connected
+      }
+      let numberofusable = findclickable(r.width, r.height, r.prefill)
+      if (numberofusable < r.width*r.height/2) {goodgrid = false; failtype = "Error: Too Little Clickables"}
+      if (rigor === 2) {
+        let layerofforces = solveclicklayer(r.width, r.height, r.prefill, structuredClone(affectgrid), affectedbygrid)
+        if (layerofforces.length > 0) {
+          let numberofforced = 0
+          for (let i in layerofforces) {
+            for (let j in layerofforces[i]) {
+              if (r.prefill[layerofforces[i][j][1]][layerofforces[i][j][0]].type !== "glass") {numberofforced += 4/(i+4)}
+            }
+          }
+          if (numberofforced > numberofusable/2.2) {goodgrid = false; failtype = "Error: Too Many Easy Tiles"}
+        }
+      }
+      
+      if (!goodgrid) { // reverse if bad
+        //console.log("fail", failtype, chosen, chosetype, r.prefill[chosen[1]][chosen[0]].subtype, prev, forcedmoves, Math.sqrt(r.width*r.height))
+        r.prefill[chosen[1]][chosen[0]] = structuredClone(prev)
+        if (symmetry) {
+          if (util.force.symmetry === "lr") {r.prefill[chosen[1]][r.width - chosen[0] - 1] = prev}
+          else if (util.force.symmetry === "ud") {r.prefill[r.height - chosen[1] - 1][chosen[0]] = prev}
+        }
+        
+      } else {//console.log("sucess", chosen, chosetype, r.prefill[chosen[1]][chosen[0]].subtype, prev)
+      }
+      changeattempts -= 1
+      if (changeattempts <= 0) {
+        affectgrid = createaffectsgrid(r.prefill, r.shape, r.width, r.height)
+        affectedbygrid = createaffectedbygrid(r.width, r.height, affectgrid)
+        console.log(structuredClone(solveclicklayer(r.width, r.height, r.prefill, structuredClone(affectgrid), affectedbygrid)))
+        console.log("Final", affectgrid, affectedbygrid)
+      }
+      if (!["normal", "glass", "button", "grey"].includes(r.prefill[chosen[1]][chosen[0]].type)) {console.log("Chosen " + str(chosen) + " to be " + chosetype)}
+    }
+    console.log(r.prefill)
+  }
+  console.log(r)
+
+  // time for DA CLICK ALGO
+
+  let totalclickables = 0
+  let onesidedclickablelistofcoords = []
+  for (let y = 0; y < r.height; y++) {
+    for (let x = 0; x < r.width; x++) {
+      if (r.prefill[y][x].type !== "button") {r.prefill[y][x].subtype = "n"}
+      r.prefill[y][x].affect = fillfindaffect(x, y, r.shape, r.width, r.height, r.prefill[y][x].type, r.prefill[y][x].subtype)
+      if (r.prefill[y][x].affect.length > 0) {
+        totalclickables += 1;
+        if (symmetry) {
+          if (util.force.symmetry === "lr" && x < r.width/2) {onesidedclickablelistofcoords.push([x,y])}
+          else if (util.force.symmetry === "ud" && y < r.height/2) {onesidedclickablelistofcoords.push([x,y])}
+        } else {onesidedclickablelistofcoords.push([x,y])}
+      }
+    }
+  }
+  console.log(totalclickables, totalclickables*r.depth/1.5, onesidedclickablelistofcoords)
+  let nonclicked = true
+  while (nonclicked) {
+    nonclicked = false
+    for (let y = 0; y < r.height; y++) {
+      for (let x = 0; x < r.width; x++) {
+        r.prefill[y][x].colour = r.target
+        r.prefill[y][x].toclick = 0
+      }
+    }
+    let clickpool = seedrandint(round(totalclickables), round(totalclickables*r.depth/1.5))
+    //let clickpool = 3
+    let alreadyclicked = 0
+    console.log("click", clickpool, totalclickables, onesidedclickablelistofcoords)
+    while (clickpool > 0) {
+      let chosenid = seedrandint(0, onesidedclickablelistofcoords.length-1)
+      let coord = onesidedclickablelistofcoords[chosenid]
+      //console.log(coord, chosenid, onesidedclickablelistofcoords)
+      r.prefill[coord[1]][coord[0]].toclick += 1
+      if (r.prefill[coord[1]][coord[0]].toclick > r.depth) {onesidedclickablelistofcoords.splice(chosenid,1)}
+      if (symmetry) {
+        if (util.force.symmetry === "lr" && coord[0] < (r.width-1)/2 ) {r.prefill[coord[1]][r.width-coord[0]-1].toclick += 1; clickpool -= 1}
+        else if (util.force.symmetry === "ud" && coord[1] < (r.height-1)/2) {r.prefill[r.height-coord[1]-1][coord[0]].toclick += 1; clickpool -= 1}
+      } 
+      clickpool -= 1
+    }
+    let tilestoclick = 0
+    for (let y = 0; y < r.height; y++) {
+      for (let x = 0; x < r.width; x++) {
+        //r.prefill[y][x].colour = withinRange(r.prefill[y][x].colour+1, r.depth+1)
+        if (r.prefill[y][x].toclick === 0) {continue}
+        tilestoclick += 1
+        for (let cid in r.prefill[y][x].affect) {
+          let c = r.prefill[y][x].affect[cid]
+          if (c.length > 0) {
+            r.prefill[c[1]][c[0]].colour = withinRange(r.prefill[c[1]][c[0]].colour-r.prefill[y][x].toclick, r.depth+1)
+            //console.log(x, y, c[0], c[1], r.prefill[c[1]][c[0]].colour, prevc, r.prefill[y][x].toclick, prevc - r.prefill[y][x].toclick, r)
+          }
+        }
+      }
+    }
+    if (tilestoclick < 2) {nonclicked = true; continue}
+    if (rigor < 2) {continue}
+    let col1 = []
+    let col2 = []
+    let mightoneclick = true
+    for (let y = 0; y < r.height; y++) {
+      for (let x = 0; x < r.width; x++) {
+        if (r.prefill[y][x].shape === "normal" || r.prefill[y][x].shape === "glass") {
+          if (col1[0] === undefined) {col1.push(r.prefill[y][x].colour)}
+          if (col1[0] === r.prefill[y][x].colour) {col1.push([x,y])}
+          else {if (col2[0] === undefined) {col2.push(r.prefill[y][x].colour)}
+            if (col2[0] === r.prefill[y][x].colour) {col2.push([x,y])}
+            else {mightoneclick = false; break}
+          }
+        }
+      }
+      if (!mightoneclick) {break}
+    }
+    if (mightoneclick) {
+      let mightoneclick = false
+      for (let y = 0; y < r.height; y++) {
+        for (let x = 0; x < r.width; x++) {
+          if (r.prefill[y][x].affect.length > 0) {
+            if (arraysEqual(r.prefill[y][x].affect, col1.slice(1)) || arraysEqual(r.prefill[y][x].affect, col2.slice(1))) {
+              mightoneclick = true
+              break
+            }
+          }
+        }
+        if (mightoneclick) {break}
+      }
+      if (mightoneclick) {nonclicked = true}
+    }
+  }
+
+
+  /*
+  for (let y = 0; y < r.height; y++) {
+    let matchclick = false
+    if (symmetry) {if (util.force.symmetry == "ud" && y >= r.height/2) {matchclick = true}}
+    for (let x = 0; x < r.width; x++) {
+      if (r.prefill[y][x].type == "glass" || r.prefill[y][x].type == "grey") {
+        r.prefill[y][x].toclick = 0
+      } else {
+        r.prefill[y][x].toclick = weightrand(0, r.depth-1, Math.floor(clickpool / (totalclickables-alreadyclicked)), 0.7)
+        if (symmetry) {if (util.force.symmetry == "lr" && x >= r.width/2) {
+          r.prefill[y][x].toclick = r.prefill[y][r.width-x-1].toclick
+        }}
+        if (matchclick) {
+          r.prefill[y][x].toclick = r.prefill[r.height-y-1][x].toclick
+        }
+        console.log(r.prefill[y][x].toclick, clickpool, alreadyclicked, Math.floor(clickpool / (totalclickables-alreadyclicked)))
+        alreadyclicked += 1
+        clickpool -= r.prefill[y][x].toclick
+      }
+      
+    }
+  }
+  */
+  console.log(structuredClone(r.prefill))
+  let assign = {
+    "normal" : "#",
+    "glass" : "g",
+    "grey" : ".",
+    "button" : "b",
+  }
+  for (let y = 0; y < r.height; y++) {
+    for (let x = 0; x < r.width; x++) {
+      let val = r.prefill[y][x].colour + assign[r.prefill[y][x].type]
+      //let val = "0" + assign[r.prefill[y][x].type]
+      if (r.prefill[y][x].type == "button") {val += r.prefill[y][x].subtype}
+      r.prefill[y][x] = val
+    }
+  }
+  return r
+}
+
 function genlightpuzzle(t) {
   console.log(util.seed)
   let symmetry = false
@@ -1636,7 +2174,7 @@ function genlightpuzzle(t) {
 }
 function customgenlightpuzzle(theme) {
   util.force = theme
-  let d = 16
+  let d = 18
   if (Object.hasOwn(util.force, "diff")) {d = util.force.diff}
   if (Object.hasOwn(util.force, "prefill")) {
     if (theme.prefill[0][0][0] == "0") {
