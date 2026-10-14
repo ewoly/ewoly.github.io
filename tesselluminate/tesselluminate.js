@@ -1683,6 +1683,17 @@ function newgenlightpuzzle(t) {
       //console.log(affects, affectby)
       return ignore
     }
+    function averageclickaffects(width, height, grid, affects) {
+      let total = 0
+      let account = width*height
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          if (grid[y][x].type === "button" || grid[y][x].type === "normal") {total += affects[y][x].length}
+          if (grid[y][x].type === "grey") {account -= 1}
+        }
+      }
+      return total/account
+    }
 
     function findclickable(width, height, grid) {
       let clickable = 0
@@ -1736,16 +1747,17 @@ function newgenlightpuzzle(t) {
       "button" : 4,
       "grey" : 1
     }
+    let prevavgclick = 999
     if (Object.hasOwn(util.force, "chances")) {chances = util.force.chances}
     while (changeattempts > 0) {
       let failtype = ""
       let chosen = [seedrandint(0, changespace[0]-1), seedrandint(0, changespace[1]-1)]
       let chosetype = choosetile(r.prefill, r.width, r.height, chances)
-      if (!["normal", "glass", "button", "grey"].includes(chosetype)) {console.log("Chosen " + str(chosen) + " to be " + chosetype)}
+      //if (!["normal", "glass", "button", "grey"].includes(chosetype)) {console.log("Chosen " + str(chosen) + " to be " + chosetype)}
       let prev = structuredClone(r.prefill[chosen[1]][chosen[0]])
       r.prefill[chosen[1]][chosen[0]].type = chosetype
       if (chosetype === "button") {r.prefill[chosen[1]][chosen[0]].subtype = neutral ? "n" : ["n", "v", "h", "+"][seedrandint(0,3)]}
-      if (prev.type === chosetype) {if (chosetype !== "button" || prev.subtype === r.prefill[chosen[1]][chosen[0]].subtype) {changeattempts -= 1; continue}}
+      if (prev.type === chosetype) {if (chosetype !== "button" || prev.subtype === r.prefill[chosen[1]][chosen[0]].subtype) {changeattempts += 1; continue}}
       if (symmetry) {
         if (util.force.symmetry === "lr") {r.prefill[chosen[1]][r.width - chosen[0] - 1].type = chosetype
           if (chosetype === "button") {r.prefill[chosen[1]][r.width - chosen[0] - 1].subtype = r.prefill[chosen[1]][chosen[0]].subtype}
@@ -1775,19 +1787,22 @@ function newgenlightpuzzle(t) {
       if (forcedmoves > Math.sqrt(r.width*r.height)) {goodgrid = false; failtype = "Error: Too Many Forced Clicks"}
       if (rigor > 0) {
         if (!testconnected(r.width, r.height, r.prefill, affectgrid, affectedbygrid)) {goodgrid = false; failtype = "Error: Disconnected"} // must be connected
+        let avgclick = averageclickaffects(r.width, r.height, r.prefill, affectgrid)
+        if (avgclick > 3 && avgclick > prevavgclick) {goodgrid = false; failtype = "Error: Too Many Affects"}
+        else {prevavgclick = avgclick}
       }
       let numberofusable = findclickable(r.width, r.height, r.prefill)
       if (numberofusable < r.width*r.height/2) {goodgrid = false; failtype = "Error: Too Little Clickables"}
       if (rigor === 2) {
         let layerofforces = solveclicklayer(r.width, r.height, r.prefill, structuredClone(affectgrid), affectedbygrid)
         if (layerofforces.length > 0) {
-          let numberofforced = 0
-          for (let i in layerofforces) {
-            for (let j in layerofforces[i]) {
-              if (r.prefill[layerofforces[i][j][1]][layerofforces[i][j][0]].type !== "glass") {numberofforced += 4/(i+4)}
-            }
+        let numberofforced = 0
+        for (let i in layerofforces) {
+          for (let j in layerofforces[i]) {
+            if (r.prefill[layerofforces[i][j][1]][layerofforces[i][j][0]].type !== "glass") {numberofforced += 4/(i+4)}
           }
-          if (numberofforced > numberofusable/2.2) {goodgrid = false; failtype = "Error: Too Many Easy Tiles"}
+        }
+        if (numberofforced > numberofusable/2.2) {goodgrid = false; failtype = "Error: Too Many Easy Tiles"}
         }
       }
       
@@ -1814,6 +1829,8 @@ function newgenlightpuzzle(t) {
   }
   console.log(r)
 
+
+  
   // time for DA CLICK ALGO
 
   let totalclickables = 0
