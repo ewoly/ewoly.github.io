@@ -1411,6 +1411,7 @@ function dailypuzzleload(leader = "0000000") {
     case 1:
     case 2:
     case 3:
+    case 6:
       theme.symmetry = "lr";
       break;
     case 4:
