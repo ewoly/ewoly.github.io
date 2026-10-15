@@ -1372,8 +1372,9 @@ function mainmenu(xstart, ystart, xspace, yspace, orient) {
 
 
 // puzzle generation
-function dailypuzzleload(leader = "0000000") {
-  findtoday()
+function dailypuzzleload(falsetoday = "-1", leader = "0000000") {
+  if (falsetoday === "-1") {findtoday()}
+  else {util.today = falsetoday}
   const dateseed = String(util.today.d).padStart(2, '0') + String(util.today.m).padStart(2, '0') + util.today.y
   util.seed = Number(dateseed + leader)
   let theme = {}
