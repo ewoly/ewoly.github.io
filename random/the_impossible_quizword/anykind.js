@@ -88,7 +88,7 @@ function defineusearea() {
 }
 
 function preload() { 
-  document.title = "Random"
+  document.title = "Impossible QuizWord"
   usedfont = loadFont("Roboto-Medium.ttf") // WOO
   secondfont = loadFont("Unispace Bd.otf")
   handfont = loadFont("Caveat-Bold.ttf")
@@ -406,7 +406,7 @@ function questiondraw() {
         makerect(470,500,140, 65, "nofill", "#000", 4, 10)
         break
       case 7:
-        maketext("K", 496, 175, 76, 76, 1)
+        maketext("K", 495, 176, 76, 76, 1)
         break
       case 12:
         if (ui.qflag == 1) {
@@ -461,7 +461,7 @@ function mainframedraw(qnum, lnum) {
     }
     let real = translatecoords(890+shake, 650, 200, 100)
     putimage(images.ui.bomb, real)
-    fill("#063")
+    fill("#053")
     noStroke()
     textFont(usedfont)
     maketext(Math.floor(bombtimeleft), 828+shake, 677, 100, 40, 1)
