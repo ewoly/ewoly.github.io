@@ -38,7 +38,8 @@ var ui = {
 }
 var flag = {
   init: false,
-  usetouch: false
+  usetouch: false,
+  audioplaying: false
 }
 
 var eggs = {
@@ -140,7 +141,6 @@ async function setup() {
       if (typeof value === "string") {
         console.log(value)
         target[key] = loadSound("sound/mus/" + value);
-        aud.musicplayer.queue.push(key)
       } else {
         target[key] = {};
         traverseload(value, target[key], type);
@@ -181,25 +181,10 @@ function backgroundstars() {
   }
   noStroke()
 }
-function musichandler() {
-  let p = aud.musicplayer
-  let lib = aud.muslib
-  if (p.current == null) {return}
-  if (lib[p.current].isPlaying()) {
-    lib[p.current].setVolume(aud.musvol.n**2 * p.effectvol / 10000)
-  } else { // loop
-    if (p.queue.indexOf(p.current) >= p.queue.length-1) {
-      p.current = p.queue[0]
-    } else {
-      p.current = p.queue[p.queue.indexOf(p.current)+1]
-    }
-    if (lib[p.current].isLoaded()) {lib[p.current].setVolume(aud.musvol.n**2 * p.effectvol / 10000); lib[p.current].play()}
-  }
-}
-
 function nextsong() {
   let p = aud.musicplayer
   let lib = aud.muslib
+  aud.musicplayer.queue = ["Alkaline", "Cross_Walder", "Forgo_Bego"]
   if (p.current) {
     if (p.queue.indexOf(p.current) >= p.queue.length-1) {
       p.current = p.queue[0]
@@ -210,10 +195,15 @@ function nextsong() {
     p.current = p.queue[0]
   }
   if (lib[p.current].isLoaded()) {
+    flag.audioplaying = true
     lib[p.current].setVolume(aud.musvol.n**2 * p.effectvol / 10000); 
     lib[p.current].onended(nextsong)
     lib[p.current].play()
   }
+}
+function stopmusic() {
+  aud.muslib[aud.musicplayer.current].onended()
+  aud.muslib[aud.musicplayer.current].stop()
 }
 function updateanim() {
   anim.val.fast += deltaTime
@@ -547,7 +537,6 @@ function draw() { // here
     //ellipse(st.x, st.y, st.s, st.s)
   }
   if (flag.init) {
-    
     findmouse()
     mousehovering()
     confettiupdate()
@@ -669,6 +658,7 @@ function gameovernow() {
 }
 
 function pointerReleased() {
+  if (!flag.audioplaying) {nextsong()}
   findmouse()
   if (flag.pause) {return}
   for (let interkey in ui.clickables) {

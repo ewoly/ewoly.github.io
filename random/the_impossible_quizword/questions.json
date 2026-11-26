@@ -76,7 +76,7 @@
     "a3": "Type 'awall'",
     "a4": "Get Crosserville to make it",
     "c": [], "w": [1,2,3,4], "n": true, 
-		"custom": [{"x":60, "y":60, "dx":19, "dy":19,"use":"correct"}]
+		"custom": [{"x":55, "y":55, "dx":30, "dy":30,"use":"correct"}]
   },
 	"9": {
     "q": "Which is a crossword?",
