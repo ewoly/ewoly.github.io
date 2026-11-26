@@ -1,0 +1,23 @@
+{
+    "ui": {
+        "restart": "reset_arrow.png",
+        "padlock": "padlock.png",
+        "x_button": "x_button.png",
+        "settings": "settings.png",
+        "back": "back_arrow.png",
+        "logo": "title_logo.png",
+        "bomb": "bomb_timer.png",
+        "keyboard": "keyboard.png",
+        "kaboom": "kaboom.gif"
+    },
+    "game": {
+        "gridfindit": "grid_it.png",
+        "gridfindx": "grid_x.png",
+        "gridkeyboard1": "grid_keyboard_1.png",
+        "gridkeyboard2": "grid_keyboard_2.png",
+        "emojiglass": "emoji_nerd.png",
+        "emojidown": "emoji_finger_down.png",
+        "emojismirk": "emoji_smirk.png",
+        "emojicrosshare": "emoji_crosshare.png"
+    }
+}

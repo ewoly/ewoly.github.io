@@ -363,42 +363,6 @@ function convertfilldata() {
   currentgrid.fill = filldata
 }
 
-function jsonpretty(obj,indentsize){
-  if (indentsize==null) indentsize=4
-  let indentunit=' '.repeat(indentsize)
-  function formatPrimitive(v){
-    if (typeof v==='string') return JSON.stringify(v)
-    if (v===null) return 'null'
-    return String(v)
-  }
-  function format(value,level){
-    if (Array.isArray(value)){
-      if (value.length>0 && value.every(a=>Array.isArray(a))){
-        let rows=value.map(row=>{
-          let items=row.map(formatPrimitive).join(',')
-          return indentunit.repeat(level+1)+'['+items+']'
-        }).join(',\n')
-        return '[\n'+rows+'\n'+indentunit.repeat(level)+']'
-      }
-      let items=value.map(v=>{
-        if (Array.isArray(v)) return format(v,level+1)
-        return formatPrimitive(v)
-      }).join(', ')
-      return '['+items+']'
-    }
-    if (value && typeof value==='object'){
-      let keys=Object.keys(value)
-      if (keys.length===0) return '{}'
-      let body=keys.map(k=>{
-        return indentunit.repeat(level+1)+JSON.stringify(k)+': '+format(value[k],level+1)
-      }).join(',\n')
-      return '{\n'+body+'\n'+indentunit.repeat(level)+'}'
-    }
-    return formatPrimitive(value)
-  }
-  return format(obj,0)
-}
-
 function convertcurrentgriddata() {
   let filldata = structuredClone(currentgrid.fill)
   for (let y = 0; y < currentgrid.height; y++) {

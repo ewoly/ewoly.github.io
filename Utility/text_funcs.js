@@ -129,17 +129,14 @@ function linesplitting(data, linecount) {
   return {lines: minlines, longest:minfound}
 }
 
-function advancedtextwrapping(data, xspace, yspace, linecount, maxsize) {
+function advancedtextwrapping(data, xspace, yspace, linecount) {
   textSize(10)
   let {lines, longest} = linesplitting(data, linecount)
   let size
   if (xspace * (linecount * textLeading()) < yspace * longest) {
     size = 10*xspace/longest
   } else {size = 10*yspace/(linecount*textLeading())}
-  if (size > maxsize) {
-    
-  }
-  return {size: size, lines: lines}
+  return [size, lines]
 }
 
 function advancedtextmono(data, xspace, yspace) {
@@ -149,14 +146,15 @@ function advancedtextmono(data, xspace, yspace) {
   } else {return 10*xspace / textWidth(data)}
 }
 
-function drawadvancedtext(data, x, y, xspace, yspace, xalign, yalign, linecount = 1, maxsize = 999999) {
+function drawadvancedtext(data, x, y, xspace, yspace, xalign, yalign, linecount = 1, justreturnsize = false) {
   textAlign(xalign, yalign)
-  let printdata
+  let printdata, size, lines
   if (linecount <= 1) {
-    textSize(advancedtextmono(data, xspace, yspace))
+    size = advancedtextmono(data, xspace, yspace)
+    textSize(size)
     printdata = data
   } else {
-    let {size, lines} = advancedtextwrapping(data, xspace, yspace, linecount, maxsize)
+    [size, lines] = advancedtextwrapping(data, xspace, yspace, linecount)
     textSize(size)
     printdata = ""
     for (let i in lines) {
@@ -164,5 +162,9 @@ function drawadvancedtext(data, x, y, xspace, yspace, xalign, yalign, linecount 
       if (i < lines.length-1) {printdata += "\n"}
     }
   }
+  if (justreturnsize){
+    return [printdata, size]
+  }
   text(printdata, x, y)
 }
+

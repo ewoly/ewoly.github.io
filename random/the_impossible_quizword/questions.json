@@ -1,0 +1,234 @@
+{
+	"0": {
+    "q": "//title",
+    "a1": "",
+    "a2": "",
+    "a3": "",
+    "a4": "",
+    "c": [1], "w": [2,3,4], "n": false
+  },
+	"1": {
+    "q": "Which is a constructor's favourite weapon?",
+    "a1": "Sword",
+    "a2": "Epee",
+    "a3": "Crossbow",
+    "a4": "Trebuchet",
+    "c": [2], "w": [1,3,4], "n": true
+  },
+	"2": {
+    "q": "What makes a crossword midi?",
+    "a1": "Being midium difficulty",
+    "a2": "Between mini and full sized",
+    "a3": "Uses digital instruments",
+    "a4": "They're created by Sir Midi",
+    "c": [1], "w": [2,3,4], "n": true
+  },
+  "3": {
+    "q": "Which is the shortest word?",
+    "a1": "till",
+    "a2": "mum",
+    "a3": "false",
+    "a4": "dwarf",
+    "c": [], "w": [1,2,3,4], "n": true,
+		"custom": [{"x":297, "y":117, "dx":45, "dy":74,
+		"onhover":"highlight", "onclick":"nothing", "use":"correct"}]
+  },
+	"4": {
+    "q": "Find it!",
+    "a1": "image:gridfindit",
+    "a2": "",
+    "a3": "cheque",
+    "a4": "bigimageq",
+    "c": [], "w": [1,2,3,4], "n": false,
+		"custom": [{"x":461, "y":497, "dx":157, "dy":78,"use":"foundit"},
+		{"x":225, "y":100, "dx":550, "dy":550,"use":"wrong"}]
+  },
+	"5": {
+    "q": "How are you doing so far on this quiz?",
+    "a1": "image:emojismirk",
+    "a2": "image:emojicrosshare",
+		"a3": "image:emojiglass",
+    "a4": "image:emojidown",
+    "c": [], "w": [2,4], "n": true, "ncow":["firsttry1",null,"firsttry2",null]
+  },
+	"6": {
+    "q": "Do not use a rebus.",
+    "a1": "k",
+    "a2": "what's that?",
+    "a3": "y not?",
+    "a4": "ez enough to do",
+    "c": [1], "w": [2,3,4], "n": true
+  },
+	"7": {
+    "q": "//finish crossword",
+    "a1": "image:gridkeyboard1",
+    "a2": "",
+    "a3": "",
+    "a4": "keyboard",
+    "c": [], "w": [1,2,3,4], "n": false,
+		"custom": [{"x":611, "y":494, "dx":71, "dy":71,"use":"foundit"},
+		{"x":200, "y":400, "dx":600, "dy":250,"use":"wrong"}]
+  },
+	"8": {
+    "q": "How do you create a wall (black square) in Crosshare?",
+    "a1": "+",
+    "a2": "Bricks, dust, and water",
+    "a3": "Type 'awall'",
+    "a4": "Get Crosserville to make it",
+    "c": [], "w": [1,2,3,4], "n": true, 
+		"custom": [{"x":62, "y":60, "dx":17, "dy":17,"use":"correct"}]
+  },
+	"9": {
+    "q": "Which is a crossword?",
+    "a1": "Cryptic",
+    "a2": "Ire",
+    "a3": "NYT",
+    "a4": "Wordsearch",
+    "c": [2], "w": [1,3,4], "n": true, "bomb": 10
+  },
+	"10": {
+    "q": "What can an ice breaker do?",
+    "a1": "Break the ice",
+    "a2": "I thought it was 'a nice breaker'",
+    "a3": "Give water a rest",
+    "a4": "No clue",
+    "c": [1], "w": [2,3,4], "n": true
+  },
+	"11": {
+    "q": "Could you keep your crosswords in check?",
+    "a1": "Nope, not for the British",
+		"a2": "etui",
+    "a3": "Isn't that a chess term?",
+    "a4": "S U R E\nI C A N\nD O I T",
+    "c": [4], "w": [1,2,3], "n": true
+  },
+	"12": {
+    "q": "Why Would ___ Clue It Like That?",
+    "a1": "Yew",
+		"a2": "Ewe",
+    "a3": "U",
+    "a4": "It's impossible for You to give the correct answer here",
+    "c": [], "w": [1,2,3,4], "n": true, 
+		"custom":[{"x":805, "y":530, "dx":70, "dy":46,
+		"prepress":"beginyoudrag", "use":"wrong"},
+		{"x":592, "y":62, "dx":135, "dy":77,
+		"use":"endyourdrag", "invis":true}]
+  },
+	"13": {
+    "q": "You're halfway there! Which reward would you like?",
+    "a1": "The Answer",
+		"a2": "The Question",
+    "a3": "The Crossword",
+    "a4": "This isn't halfway: half of 25 is 12.5",
+    "c": [1], "w": [2,3,4], "n": true
+  },
+	"14": {
+    "q": "21x21",
+    "a1": "441",
+		"a2": "Jumbo",
+    "a3": "Sunday",
+    "a4": "Too big",
+    "c": [3], "w": [1,2,4], "n": true, "bomb": 10
+  },
+	"15": {
+    "q": "//finish crossword",
+    "a1": "image:gridkeyboard2",
+    "a2": "",
+    "a3": "",
+    "a4": "keyboard",
+    "c": [], "w": [1,2,3,4], "n": false,
+		"custom": [{"x":86, "y":670, "dx":55, "dy":73,"use":"foundit"},
+		{"x":200, "y":400, "dx":600, "dy":250,"use":"wrong"}]
+  },
+	"16": {
+    "q": "If spider solitaire exists, then what is a spider crossword?",
+    "a1": "A tangled web of words",
+		"a2": "One made by AceArachnid",
+    "a3": "Crossword with 8 branching grids",
+    "a4": "xkcd 2957",
+    "c": [2], "w": [1,3,4], "n": true
+  },
+	"17": {
+    "q": "What is love?",
+    "a1": "Baby don't hurt me",
+		"a2": "Love encompasses a range of strong and positive emotional and mental states, from the most sublime virtue or good habit, the deepest interpersonal affection, to the simplest pleasure. An example of this range of meanings is that the love of a mother differs from the love of a spouse, which differs from the love for food. Most commonly, love refers to a feeling of strong attraction and emotional attachment. Love is considered to be both positive and negative, with its virtue representing human kindness, compassion, and affection—'the unselfish, loyal and benevolent concern for the good of another'—and its vice representing a human moral flaw akin to vanity, selfishness, amour-propre, and egotism, potentially leading people into a type of mania, obsessiveness, or codependency. It may also describe compassionate and affectionate actions towards other humans, oneself, or animals. In its various forms, love acts as a major facilitator of interpersonal relationships and, owing to its central psychological importance, is one of the most common themes in the creative arts. Love has been postulated to be a function that keeps human beings together against menaces and to facilitate the continuation of the species.",
+    "a3": "An acronym",
+    "a4": "Wild vole",
+    "c": [4], "w": [1,2,3], "n": true
+  },
+	"18": {
+    "q": "What do you call more than one rebus?",
+    "a1": "Rebuses",
+		"a2": "Rebodes",
+    "a3": "Rebi",
+    "a4": "1-2-3",
+    "c": [1], "w": [2,3,4], "n": true, "bomb":8
+  },
+	"19": {
+    "q": "FOUNDINATOOLBOX",
+    "a1": "Hammer",
+		"a2": "Spanner",
+    "a3": "Highlighter",
+    "a4": "Spirit Level",
+    "c": [2], "w": [1,3,4], "n": true
+  },
+	"200": {
+    "q": "How did we get here?",
+    "a1": "Hyperlink, typically",
+		"a2": "Blame the organiser",
+    "a3": "Went through Lake Erie",
+    "a4": "Bucket of milk",
+    "c": [1], "w": [2,3,4], "n": true
+  },
+	"20": {
+		"q": "No dupes!",
+    "a1": "y not?",
+		"a2": "Ewe",
+    "a3": "Lance",
+    "a4": "Jumbo",
+    "c": [3], "w": [1,2,4], "n": true
+  },
+	"21": {
+		"q": "What's 9 plus 10?",
+    "a1": "19",
+		"a2": "89",
+    "a3": "910",
+    "a4": "<3",
+    "c": [], "w": [1,2,3,4], "n": true,
+		"custom":[{"x":18, "y":24, "dx":80, "dy":60,"use":"correct"}]
+  },
+	"22": {
+    "q": "X marks the spot!",
+    "a1": "image:gridfindx",
+    "a2": "",
+    "a3": "",
+    "a4": "bigimageq",
+    "c": [], "w": [1,2,3,4], "n": false, "bomb": 10,
+		"custom": [{"x":370, "y":575, "dx":45, "dy":45,"use":"foundit"},
+		{"x":225, "y":100, "dx":550, "dy":550,"use":"wrong"}]
+  },
+	"23": {
+		"q": "14D?",
+    "a1": "Meta?",
+		"a2": "Does that even exist?",
+    "a3": "Better than 14A",
+    "a4": "Well then cheer it up!",
+    "c": [4], "w": [1,2,3], "n": true
+  },
+	"24": {
+		"q": "How do you deal with a cross hare?",
+    "a1": "Hope it's not a killer rabbit",
+		"a2": "Feed it condiments: it's open sauce",
+    "a3": "get Mike D",
+    "a4": "Weetabix",
+    "c": [2], "w": [1,3,4], "n": true
+  },
+	"25": {
+		"q": "Last Question: Has this quiz made sense?",
+    "a1": "yay last question!",
+		"a2": "lend me an ear as I say this: what on earth was that",
+    "a3": "nope, made me go gaga",
+    "a4": "this question doesn't have an answer, you can't win.",
+    "c": [], "w": [1,2,3,4], "n": true
+  }
+}

@@ -1,0 +1,14 @@
+{
+    "ui": {
+        "click": "mouse_click.mp3",
+        "click_big" : "mouse_click_big.mp3",
+        "slider": "mouse_slider.mp3",
+        "empty" : "empty.mp3"
+    },
+    "game": {
+        "normal": "normal_cell_click.mp3",
+        "glass": "glass_cell_click.mp3",
+        "grey": "grey_cell_click.mp3",
+        "win": "level_win.mp3"
+    }
+}

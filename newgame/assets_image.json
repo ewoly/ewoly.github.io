@@ -1,0 +1,10 @@
+{
+    "ui": {
+        "restart": "reset_arrow.png",
+        "padlock": "padlock.png",
+        "x_button": "x_button.png",
+        "settings": "settings.png",
+        "back": "back_arrow.png",
+        "logo": "title_logo.png"
+    }
+}

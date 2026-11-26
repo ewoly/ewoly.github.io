@@ -1,5 +1,5 @@
-function playsfx(sfxname, pitch = 1) {
-  sfxname.setVolume(aud.sfxvol.n**2/3500)
+function playsfx(sfxname, pitch = 1, voladj = 1) {
+  sfxname.setVolume(voladj*aud.sfxvol.n**2/3500)
   sfxname.rate(pitch)
   sfxname.play()
 }
