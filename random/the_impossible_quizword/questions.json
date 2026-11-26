@@ -76,7 +76,7 @@
     "a3": "Type 'awall'",
     "a4": "Get Crosserville to make it",
     "c": [], "w": [1,2,3,4], "n": true, 
-		"custom": [{"x":55, "y":55, "dx":30, "dy":30,"use":"correct"}]
+		"custom": [{"x":50, "y":55, "dx":34, "dy":30,"use":"correct"}]
   },
 	"9": {
     "q": "Which is a crossword?",
@@ -208,10 +208,10 @@
 		{"x":225, "y":100, "dx":550, "dy":550,"use":"wrong"}]
   },
 	"23": {
-		"q": "14D?",
+		"q": "17D?",
     "a1": "Meta?",
-		"a2": "Does that even exist?",
-    "a3": "Better than 14A",
+		"a2": "There is no such word",
+    "a3": "Better than 17A",
     "a4": "Well then cheer it up!",
     "c": [4], "w": [1,2,3], "n": true
   },
