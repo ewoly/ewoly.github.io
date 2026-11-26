@@ -76,7 +76,7 @@
     "a3": "Type 'awall'",
     "a4": "Get Crosserville to make it",
     "c": [], "w": [1,2,3,4], "n": true, 
-		"custom": [{"x":62, "y":60, "dx":17, "dy":17,"use":"correct"}]
+		"custom": [{"x":60, "y":60, "dx":19, "dy":19,"use":"correct"}]
   },
 	"9": {
     "q": "Which is a crossword?",
@@ -204,7 +204,7 @@
     "a3": "",
     "a4": "bigimageq",
     "c": [], "w": [1,2,3,4], "n": false, "bomb": 10,
-		"custom": [{"x":370, "y":575, "dx":45, "dy":45,"use":"foundit"},
+		"custom": [{"x":360, "y":565, "dx":65, "dy":65,"use":"foundit"},
 		{"x":225, "y":100, "dx":550, "dy":550,"use":"wrong"}]
   },
 	"23": {

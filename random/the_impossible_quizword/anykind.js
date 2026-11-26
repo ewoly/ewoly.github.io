@@ -37,7 +37,8 @@ var ui = {
   qflag: 0,
 }
 var flag = {
-  init: false
+  init: false,
+  usetouch: false
 }
 
 var eggs = {
@@ -193,6 +194,25 @@ function musichandler() {
       p.current = p.queue[p.queue.indexOf(p.current)+1]
     }
     if (lib[p.current].isLoaded()) {lib[p.current].setVolume(aud.musvol.n**2 * p.effectvol / 10000); lib[p.current].play()}
+  }
+}
+
+function nextsong() {
+  let p = aud.musicplayer
+  let lib = aud.muslib
+  if (p.current) {
+    if (p.queue.indexOf(p.current) >= p.queue.length-1) {
+      p.current = p.queue[0]
+    } else {
+      p.current = p.queue[p.queue.indexOf(p.current)+1]
+    }
+  } else {
+    p.current = p.queue[0]
+  }
+  if (lib[p.current].isLoaded()) {
+    lib[p.current].setVolume(aud.musvol.n**2 * p.effectvol / 10000); 
+    lib[p.current].onended(nextsong)
+    lib[p.current].play()
   }
 }
 function updateanim() {
@@ -360,7 +380,8 @@ function questiondraw() {
       if (thisq.c.includes(i+1)) {use = "correct"}
       else if (thisq.w.includes(i+1)) {use = "wrong"}
       ui.clickables["a" + str(i+1)].use = use
-      let hover = pointinrect(ui.mouse.x, ui.mouse.y, points)
+      let hover = false
+      if (!flag.usetouch || touches.length) {hover = pointinrect(ui.mouse.x, ui.mouse.y, points)}
       maketextbox(thisq["a" + str(i+1)], Math.ceil(Math.sqrt(thisq["a" + str(i+1)].length/18)), points.x, points.y, points.dx, points.dy, hover ? "#FF8" : "#FFD", "#000", 4, 20)
     }
     maketext(thisq.q, 100, 50, 800, 200, Math.ceil(Math.sqrt(thisq.q.length/30)))
@@ -389,7 +410,7 @@ function questiondraw() {
         break
       case 12:
         if (ui.qflag == 1) {
-          maketext("You", ui.mouse.x-40, ui.mouse.y-20, 80, 40)
+          maketext("You", ui.mouse.x-60, ui.mouse.y-30, 120, 60)
         } else if (ui.qflag == 2) {
           maketext("You", 594, 55, 120, 75)
         } break
@@ -474,7 +495,7 @@ function gameoverscreen() {
   maketextbox("Go Again?", 1, points.x, points.y, points.dx, points.dy, "rgb(151, 117, 30)", "#1a1212", points.dx/100, points.dx/30)
 }
 function drawgifs() {
-  for (let i = animations.length - 1; i >= 0; i--) {
+  for (let i = 0; i < animations.length; i++) {
       let a = animations[i]
       let frame = floor((millis() - a.start) / 1000 * 30 * a.playback)
 
@@ -504,7 +525,7 @@ function startgif(gif, x, y, dx, dy, playback, init) {
 }
 
 function draw() { // here
-  background("#ccc");
+  background("#bbb");
   textFont(handfont)
   textAlign(LEFT,BASELINE);
   rectMode(CORNER)
@@ -533,6 +554,10 @@ function draw() { // here
     defineusearea()
     fill("#FFFFFF")
     rect(ui.usearea.x, ui.usearea.y, ui.usearea.dx, ui.usearea.dy)
+    fill("#000")
+    textSize(ui.usearea.dx/40)
+    textAlign(CENTER,CENTER)
+    text("Make your screen horizontal for best experience!", ui.usearea.x+ui.usearea.dx/2, ui.usearea.y - ui.usearea.dy/30)
     if (play.q > 0) {
       questiondraw()
       mainframedraw(play.q, play.lives)
@@ -561,6 +586,7 @@ function pointerPressed() {
   sound.ui.empty.setVolume(0)
   sound.ui.empty.play()
   console.log(mouseX, mouseY, ui.mouse.x, ui.mouse.y)
+  if (aud.musicplayer.current == null) {nextsong()}
   findmouse()
   if (flag.pause) {return}
   for (let interkey in ui.clickables) {
