@@ -68,7 +68,7 @@ var questions = {
   }
 }
 var play = {
-  q: 0,
+  q: 25,
   lives: 5,
   bombtime: null,
   gamegood: true
@@ -264,6 +264,25 @@ function confettiupdate(linkdist = windowWidth/8, linknum=4) {
   }
 }
 
+function therandomquestion() {
+  let goods = ["Lance", "Full", "ok sure can", "ettu", "#", "mini", "lil"]
+  let used = ["Hammer", "An acronym", "Jumbo", "Too Big", "441", "The Question", "The Crossword", "Yew", "Ewe", "U", "etui", "No clue", "Give water a rest", "Cryptic", "NYT", "+", "till", "dwarf", "mum", "Sword"]
+  let first = ["y not", "ez enough to do", "what's that?", "false"]
+  let q = 20
+  questions[q].a1 = first[randint(0, first.length)]
+  for (let i = 2; i < 5; i++) {
+    let pos = randint(0, used.length)
+    questions[q]["a"+str(i)] = used[pos]
+    used.splice(pos, 1)
+  }
+  let correct = randint(1,4)
+  questions[q]["a"+str(correct+1)] = goods[randint(0, goods.length)]
+  questions[q].c = [correct+1]
+  let wrongs = [1,2,3,4]
+  wrongs.splice(correct,1)
+  questions[q].w = wrongs
+}
+
 function createimagelengths(useimage, lengths) {
   let ratio = lodgeimage(useimage.width, useimage.height, lengths.dx, lengths.dy)
   return {dx: useimage.width*ratio, dy: useimage.height*ratio}
@@ -385,8 +404,12 @@ function questiondraw() {
     fill("#000")
     noStroke()
     maketext(thisq.a1, 200, 30, 600, 370, 1)
-    let real = translatecoords(500, 400, 800, 250)
-    putimage(images.ui.keyboard, real)
+    if (play.q == 28) {
+      maketext("Now fix the crossword!", 300, 400, 400, 250, 1)
+    } else {
+      let real = translatecoords(500, 400, 800, 250)
+      putimage(images.ui.keyboard, real)
+    }
   }
   if (ui.qflag){
     fill("#000")
@@ -410,8 +433,24 @@ function questiondraw() {
       case 22:
         makerect(376, 581, 30, 30, "nofill", "#000", 2, 10)
         break
+      case 27:
+        let text = "LET".substring(0, ui.qflag)
+        maketext(text, 475, 188, 50, 60, 1)
+        break
+      case 28:
+        let origin = translatecoords(55, 55, 80)
+        noFill()
+        strokeWeight(origin.dx/20)
+        stroke("#000")
+        if (ui.qflag == 1) {
+          circle(mouseX, mouseY, origin.dx)
+        } else if (ui.qflag == 2) {
+          origin = translatecoords(500, 218, 60)
+          circle(origin.x, origin.y, origin.dx)
+        } break
     }
   }
+  if (play.q == 28) {fill("#000");noStroke();maketext("LET", 475, 188, 50, 60, 1)}
 
   if (Object.hasOwn(thisq, "custom")) {
     for (let i in thisq.custom) {
@@ -424,12 +463,18 @@ function mainframedraw(qnum, lnum) {
   //qnum
   thisq = questions[qnum]
   let origin = translatecoords(55, 55, 100)
+  let numcolor
+  if (qnum == 35) {
+    colorMode(HSL)
+    numcolor = color(255*anim.val.fast/1000, 100, 40)
+    colorMode(RGB, 255)
+  } else {numcolor = "#000"}
   noFill()
   strokeWeight(origin.dx/20)
-  stroke("#000")
+  stroke(numcolor)
   circle(origin.x, origin.y, origin.dx)
   noStroke()
-  fill("#000")
+  fill(numcolor)
   maketext(str(qnum) + ".", 20, 15, 70, 70, 1)
   fill("#BE6")
   stroke("#000")
@@ -473,6 +518,24 @@ function title() {
   ui.clickables.start = points
   maketextbox("Begin the Quiz", 1, points.x, points.y, points.dx, points.dy, "#EA0", "#000", points.dx/100, points.dx/30)
   //textFont(usedfont)
+}
+function finishscreen() {
+  textFont(handfont)
+  fill("#420")
+  noStroke()
+  maketext("The Impossible QuizWord", 100, 50, 800, 100, 1)
+  colorMode(HSL)
+  fill(color(255*anim.val.fast/1000, 100, 30))
+  colorMode(RGB, 255)
+  maketext("COMPLETE", 100, 150, 800, 60, 1)
+  fill("#000")
+  let desc = `Please fill in this clue in the grid with FOILS`
+  maketext(desc, 100, 250, 800, 150, 2)
+  desc = `Hope you enjoyed that quiz. Why did I clue this single word with an entire quiz? because it's funny :)`
+  maketext(desc, 100, 390, 800, 200, 2)
+  let points = {x:250,y:590,dx:500,dy:140, use:"thefinale"}
+  ui.clickables.start = points
+  maketextbox("button to game over to restart (and see the explody thingy again)", 2, points.x, points.y, points.dx, points.dy, "#EA0", "#000", points.dx/100, points.dx/30)
 }
 function gameoverscreen() {
   background("#000")
@@ -547,13 +610,15 @@ function draw() { // here
     textSize(ui.usearea.dx/40)
     textAlign(CENTER,CENTER)
     text("Make your screen horizontal for best experience!", ui.usearea.x+ui.usearea.dx/2, ui.usearea.y - ui.usearea.dy/30)
-    if (play.q > 0) {
+    if (play.q > 0 && play.q < 36) {
       questiondraw()
       mainframedraw(play.q, play.lives)
     } else if (play.q == 0) {
       title()
     } else if (play.q == -1) {
       gameoverscreen()
+    } else if (play.q == 36) {
+      finishscreen()
     }
     drawgifs()
     //image(images.ui.kaboom, 0,0,1000,1000)
@@ -613,8 +678,12 @@ function performact(act) {
     case "foundit": ui.qflag = 1; anim.qflagtime = millis(); flag.pause=true; playsfx(sound.game.grey,1,1.5);setTimeout(nextquestion, 1200); break
     case "firsttry1": play.lives<5?nextquestion():loselife(); break
     case "firsttry2": play.lives==5?nextquestion():loselife(); break
-    case "beginyoudrag": if(ui.qflag==0) {ui.qflag=1}; break
-    case "endyourdrag":if(ui.qflag==1) {ui.qflag=2; playsfx(sound.game.grey,1,1.5); setTimeout(nextquestion, 1200)}; break
+    case "beginyourdrag": if(ui.qflag==0) {ui.qflag=1}; break
+    case "endyourdrag":if(ui.qflag==1) {ui.qflag=2; playsfx(sound.game.grey,1,1.5); setTimeout(nextquestion, 1200); ui.clickables={}}; break
+    case "sendl": if(ui.qflag==0) {ui.qflag=1;playsfx(sound.game.grey,1,1.5)} else {loselife()}; break
+    case "sende": if(ui.qflag==1) {ui.qflag=2;playsfx(sound.game.grey,1,1.5)} else {loselife()}; break
+    case "sendt": if(ui.qflag==2) {ui.qflag=3;playsfx(sound.game.grey,1,1.5); setTimeout(nextquestion, 1200); ui.clickables={}} else {loselife()}; break
+    case "thefinale": gameover(500, 375); break
   }
 }
 
@@ -630,6 +699,7 @@ function nextquestion() {
   ui.clickables = {}
   flag.pause = false
   playsfx(sound.game.correct)
+  if (play.q == 20) {therandomquestion()}
 }
 
 function loselife() {
@@ -637,7 +707,7 @@ function loselife() {
   let real = translatecoords(120, 560, 300, 300)
   if (play.lives > 0) {
     playsfx(sound.game.wrong, 1, 0.5)
-    startgif(images.ui.kaboom, real.x, real.y, real.dx, real.dy, 2, 130)
+    startgif(images.ui.kaboom, real.x, real.y, real.dx, real.dy, 4, 130)
   } else {gameover(real.x + real.dx/2, real.y + real.dy/2)}
 }
 
@@ -668,7 +738,7 @@ function pointerReleased() {
       break
     }
   }
-  if (play.q == 12 && ui.qflag == 1) {ui.qflag = 0}
+  if ((play.q == 12 || play.q == 28) && ui.qflag == 1) {ui.qflag = 0}
 }
 
 function pointerDragged() {

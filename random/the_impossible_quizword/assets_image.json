@@ -15,9 +15,11 @@
         "gridfindx": "grid_x.png",
         "gridkeyboard1": "grid_keyboard_1.png",
         "gridkeyboard2": "grid_keyboard_2.png",
+        "gridkeyboard3": "grid_keyboard_3.png",
         "emojiglass": "emoji_nerd.png",
         "emojidown": "emoji_finger_down.png",
         "emojismirk": "emoji_smirk.png",
-        "emojicrosshare": "emoji_crosshare.png"
+        "emojicrosshare": "emoji_crosshare.png",
+        "autofill": "autofill.png"
     }
 }

@@ -70,10 +70,10 @@
 		{"x":200, "y":400, "dx":600, "dy":250,"use":"wrong"}]
   },
 	"8": {
-    "q": "How do you create a wall (black square) in Crosshare?",
+    "q": "How do you create a block (black square) in Crosshare?",
     "a1": "+",
     "a2": "Bricks, dust, and water",
-    "a3": "Type 'awall'",
+    "a3": "Type 'ablock'",
     "a4": "Get Crosserville to make it",
     "c": [], "w": [1,2,3,4], "n": true, 
 		"custom": [{"x":50, "y":55, "dx":34, "dy":30,"use":"correct"}]
@@ -110,17 +110,17 @@
     "a4": "It's impossible for You to give the correct answer here",
     "c": [], "w": [1,2,3,4], "n": true, 
 		"custom":[{"x":805, "y":530, "dx":70, "dy":46,
-		"prepress":"beginyoudrag", "use":"wrong"},
+		"prepress":"beginyourdrag", "use":"wrong"},
 		{"x":592, "y":62, "dx":135, "dy":77,
 		"use":"endyourdrag", "invis":true}]
   },
-	"13": {
-    "q": "You're halfway there! Which reward would you like?",
-    "a1": "The Answer",
-		"a2": "The Question",
-    "a3": "The Crossword",
-    "a4": "This isn't halfway: half of 25 is 12.5",
-    "c": [1], "w": [2,3,4], "n": true
+  "13": {
+    "q": "What happens if Crosshare gets too much traffic?",
+    "a1": "The hare looks at you, sternly",
+		"a2": "Some kind of error",
+    "a3": "It gets gridlocked",
+    "a4": "No such thing as too much",
+    "c": [3], "w": [1,2,4], "n": true
   },
 	"14": {
     "q": "21x21",
@@ -145,7 +145,7 @@
     "a1": "A tangled web of words",
 		"a2": "One made by AceArachnid",
     "a3": "Crossword with 8 branching grids",
-    "a4": "xkcd 2957",
+    "a4": "Any uploaded on the World Wide Web",
     "c": [2], "w": [1,3,4], "n": true
   },
 	"17": {
@@ -156,29 +156,21 @@
     "a4": "Wild vole",
     "c": [4], "w": [1,2,3], "n": true
   },
-	"18": {
+  "18": {
+    "q": "You're halfway there! Which reward would you like?",
+    "a1": "The Answer",
+		"a2": "The Question",
+    "a3": "The Crossword",
+    "a4": "This isn't halfway: half of 35 is 17.5",
+    "c": [1], "w": [2,3,4], "n": true
+  },
+	"19": {
     "q": "What do you call more than one rebus?",
     "a1": "Rebuses",
 		"a2": "Rebodes",
     "a3": "Rebi",
     "a4": "1-2-3",
     "c": [1], "w": [2,3,4], "n": true, "bomb":8
-  },
-	"19": {
-    "q": "FOUNDINATOOLBOX",
-    "a1": "Hammer",
-		"a2": "Spanner",
-    "a3": "Highlighter",
-    "a4": "Spirit Level",
-    "c": [2], "w": [1,3,4], "n": true
-  },
-	"200": {
-    "q": "How did we get here?",
-    "a1": "Hyperlink, typically",
-		"a2": "Blame the organiser",
-    "a3": "Went through Lake Erie",
-    "a4": "Bucket of milk",
-    "c": [1], "w": [2,3,4], "n": true
   },
 	"20": {
 		"q": "No dupes!",
@@ -207,7 +199,23 @@
 		"custom": [{"x":360, "y":565, "dx":65, "dy":65,"use":"foundit"},
 		{"x":225, "y":100, "dx":550, "dy":550,"use":"wrong"}]
   },
-	"23": {
+  "23": {
+    "q": "FOUNDINATOOLBOX",
+    "a1": "Hammer",
+		"a2": "Spanner",
+    "a3": "Highlighter",
+    "a4": "Spirit Level",
+    "c": [2], "w": [1,3,4], "n": true
+  },
+  "24": {
+		"q": "17A?",
+    "a1": "3",
+		"a2": "4",
+    "a3": "5",
+    "a4": "6",
+    "c": [1], "w": [2,3,4], "n": true
+  },
+	"25": {
 		"q": "17D?",
     "a1": "Meta?",
 		"a2": "There is no such word",
@@ -215,7 +223,37 @@
     "a4": "Well then cheer it up!",
     "c": [4], "w": [1,2,3], "n": true
   },
-	"24": {
+  "26": {
+    "q": "How did we get here?",
+    "a1": "Hyperlink, I think",
+		"a2": "25 Questions",
+    "a3": "Went through Lake Erie",
+    "a4": "Bucket of milk",
+    "c": [1], "w": [2,3,4], "n": true
+  },
+  "27": {
+    "q": "//finish crossword",
+    "a1": "image:gridkeyboard3",
+    "a2": "",
+    "a3": "",
+    "a4": "keyboard",
+    "c": [], "w": [1,2,3,4], "n": false,
+		"custom": [{"x":732, "y":494, "dx":64, "dy":69,"use":"sendl"},
+    {"x":371, "y":405, "dx":70, "dy":65,"use":"sende"},
+    {"x":506, "y":409, "dx":74, "dy":63,"use":"sendt"},
+		{"x":200, "y":400, "dx":600, "dy":250,"use":"wrong"}]
+  },
+  "28": {
+    "q": "//finish crossword",
+    "a1": "image:gridkeyboard3",
+    "a2": "",
+    "a3": "",
+    "a4": "keyboard",
+    "c": [], "w": [1,2,3,4], "n": false,
+		"custom": [{"x":0, "y":0, "dx":106, "dy":106,"prepress":"beginyourdrag", "use":"nothing"},
+		{"x":460, "y":175, "dx":80, "dy":80,"use":"endyourdrag", "invis":true}]
+  },
+  "29": {
 		"q": "How do you deal with a cross hare?",
     "a1": "Hope it's not a killer rabbit",
 		"a2": "Feed it condiments: it's open sauce",
@@ -223,12 +261,60 @@
     "a4": "Weetabix",
     "c": [2], "w": [1,3,4], "n": true
   },
-	"25": {
-		"q": "Last Question: Has this quiz made sense?",
-    "a1": "yay last question!",
+  "30": {
+		"q": "image:emojicrosshare",
+    "a1": "Nod",
+		"a2": "Smile",
+    "a3": "Wink",
+    "a4": "Boop",
+    "c": [3], "w": [1,2,4], "n": true, "bomb": 10
+  },
+  "31": {
+		"q": "What's the answer to today's Horsle?",
+    "a1": "horse",
+		"a2": "horse",
+    "a3": "horse",
+    "a4": "horse",
+    "c": [1,2,3,4], "w": [], "n": true
+  },
+  "32": {
+		"q": "In Q4, which word contained IT?",
+    "a1": "WRITES",
+		"a2": "ELITES",
+    "a3": "STITCH",
+    "a4": "SMITHY",
+    "c": [2], "w": [1,3,4], "n": true
+  },
+  "33": {
+		"q": "What happens if you put J in a crossword?",
+    "a1": "You get a lot of jargon",
+		"a2": "Jumbo",
+    "a3": "crossjword",
+    "a4": "image:autofill",
+    "c": [1], "w": [2,3,4], "n": true, "bomb":10
+  },
+	"34": {
+		"q": "Penultimate Question: Has this quiz made sense?",
+    "a1": "yay almost there!",
 		"a2": "lend me an ear as I say this: what on earth was that",
     "a3": "nope, made me go gaga",
-    "a4": "this question doesn't have an answer, you can't win.",
-    "c": [], "w": [1,2,3,4], "n": true
+    "a4": "certain words in this question seem a little sus",
+    "c": [4], "w": [1,2,3], "n": true
+  },
+  "35": {
+		"q": "Why Would You Clue It Like That?",
+    "a1": "loaf told me to",
+		"a2": "it's funny",
+    "a3": "so NorthenLion plays it",
+    "a4": "I'm the solver, actually",
+    "c": [2], "w": [1,3,4], "n": true, "bomb":10
+  },
+  "36": {
+    "q": "//end screen",
+    "a1": "",
+    "a2": "",
+    "a3": "",
+    "a4": "",
+    "c": [1], "w": [2,3,4], "n": false
   }
 }
