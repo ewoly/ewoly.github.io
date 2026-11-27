@@ -68,7 +68,7 @@ var questions = {
   }
 }
 var play = {
-  q: 25,
+  q: 0,
   lives: 5,
   bombtime: null,
   gamegood: true
