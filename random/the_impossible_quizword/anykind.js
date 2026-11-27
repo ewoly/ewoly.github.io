@@ -512,7 +512,7 @@ function title() {
   fill("#000")
   let desc = `This is based on The Impossible Quiz by Splapp-Me-Do in 2007, but this time using Crosswords as the theme. You get 5 lives, lose them all and you have to restart. The answer to each question is not rooted in logic. It could be anything, but you will soon see what that means ;)`
   maketext(desc, 100, 150, 800, 200, 4)
-  desc = `This is made for the Why Would You Clue It Like That collab, and a couple questions assume you're filling out that grid :) good luck.`
+  desc = `This is made for the Why Would You Clue It Like That Christmas Collab, and a couple questions assume you're filling out that grid :) good luck.`
   maketext(desc, 100, 320, 800, 200, 2)
   let points = {x:250,y:520,dx:500,dy:160, use:"correct"}
   ui.clickables.start = points
